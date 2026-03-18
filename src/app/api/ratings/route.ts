@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { playerRatings } from "@/lib/db/schema";
 import { ratingSchema } from "@/lib/validators";
 import { eq, and } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -25,7 +22,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (parsed.data.ratedId === user.id) {
+  if (parsed.data.ratedId === session.player.id) {
     return NextResponse.json(
       { error: "Cannot rate yourself" },
       { status: 400 }
@@ -38,7 +35,7 @@ export async function POST(request: NextRequest) {
     .from(playerRatings)
     .where(
       and(
-        eq(playerRatings.raterId, user.id),
+        eq(playerRatings.raterId, session.player.id),
         eq(playerRatings.ratedId, parsed.data.ratedId)
       )
     )
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest) {
       .where(eq(playerRatings.id, existing[0].id));
   } else {
     await db.insert(playerRatings).values({
-      raterId: user.id,
+      raterId: session.player.id,
       ratedId: parsed.data.ratedId,
       skills: parsed.data.skills,
     });

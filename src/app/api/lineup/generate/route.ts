@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   matches,
@@ -16,12 +16,9 @@ import type { SkillRatings } from "@/types";
 import { SKILLS } from "@/types";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -52,7 +49,7 @@ export async function POST(request: NextRequest) {
     .where(
       and(
         eq(groupMembers.groupId, match.groupId),
-        eq(groupMembers.playerId, user.id),
+        eq(groupMembers.playerId, session.player.id),
         eq(groupMembers.role, "admin")
       )
     )

@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 import { upsertPlayer, getPlayerByAuthId, searchPlayers } from "@/lib/db/queries";
 import { playerProfileSchema } from "@/lib/validators";
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -21,12 +18,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -40,14 +34,14 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  await upsertPlayer(user.id, {
-    phone: user.phone || "",
+  await upsertPlayer(session.player.id, {
+    phone: session.player.phone,
     name: parsed.data.name,
     positions: parsed.data.positions,
     dominantFoot: parsed.data.dominantFoot,
     selfSkills: parsed.data.selfSkills,
   });
 
-  const player = await getPlayerByAuthId(user.id);
+  const player = await getPlayerByAuthId(session.player.id);
   return NextResponse.json(player);
 }

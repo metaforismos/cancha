@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { getPlayerByAuthId, getPlayerAvgSkills, getRatingByPair } from "@/lib/db/queries";
+import { getSession } from "@/lib/auth";
+import { getPlayerAvgSkills, getRatingByPair } from "@/lib/db/queries";
 import { db } from "@/lib/db";
 import { players } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -9,12 +9,9 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -31,12 +28,12 @@ export async function GET(
   }
 
   const avgSkills = await getPlayerAvgSkills(id);
-  const myRating = await getRatingByPair(user.id, id);
+  const myRating = await getRatingByPair(session.player.id, id);
 
   return NextResponse.json({
     player,
     avgSkills,
     myRating,
-    isMe: user.id === id,
+    isMe: session.player.id === id,
   });
 }

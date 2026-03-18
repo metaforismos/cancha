@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { groups, groupMembers } from "@/lib/db/schema";
 import { getPlayerGroups } from "@/lib/db/queries";
@@ -10,26 +10,20 @@ const createGroupSchema = z.object({
 });
 
 export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const playerGroups = await getPlayerGroups(user.id);
+  const playerGroups = await getPlayerGroups(session.player.id);
   return NextResponse.json(playerGroups);
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -47,14 +41,14 @@ export async function POST(request: NextRequest) {
     .insert(groups)
     .values({
       name: parsed.data.name,
-      createdBy: user.id,
+      createdBy: session.player.id,
     })
     .returning();
 
   // Add creator as admin
   await db.insert(groupMembers).values({
     groupId: group.id,
-    playerId: user.id,
+    playerId: session.player.id,
     role: "admin",
   });
 

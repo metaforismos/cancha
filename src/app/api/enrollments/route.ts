@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matchEnrollments, matches } from "@/lib/db/schema";
 import { getEnrollmentCount, getPlayerAvgSkills } from "@/lib/db/queries";
 import { eq, and } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -22,7 +19,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Check rating gate: need ≥3 ratings
-  const avgSkills = await getPlayerAvgSkills(user.id);
+  const avgSkills = await getPlayerAvgSkills(session.player.id);
   if (!avgSkills || avgSkills.ratingCount < 3) {
     return NextResponse.json(
       {
@@ -63,7 +60,7 @@ export async function POST(request: NextRequest) {
     .where(
       and(
         eq(matchEnrollments.matchId, matchId),
-        eq(matchEnrollments.playerId, user.id)
+        eq(matchEnrollments.playerId, session.player.id)
       )
     )
     .limit(1);
@@ -86,13 +83,13 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(matchEnrollments.matchId, matchId),
-          eq(matchEnrollments.playerId, user.id)
+          eq(matchEnrollments.playerId, session.player.id)
         )
       );
   } else {
     await db.insert(matchEnrollments).values({
       matchId,
-      playerId: user.id,
+      playerId: session.player.id,
       status,
     });
   }
@@ -101,12 +98,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -119,7 +113,7 @@ export async function DELETE(request: NextRequest) {
     .where(
       and(
         eq(matchEnrollments.matchId, matchId),
-        eq(matchEnrollments.playerId, user.id)
+        eq(matchEnrollments.playerId, session.player.id)
       )
     );
 

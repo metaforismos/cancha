@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matches, matchEnrollments, groupMembers } from "@/lib/db/schema";
 import { matchCreateSchema } from "@/lib/validators";
 import { eq, and, desc, sql } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -44,12 +41,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
 
-  if (!user) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -70,7 +64,7 @@ export async function POST(request: NextRequest) {
     .where(
       and(
         eq(groupMembers.groupId, parsed.data.groupId),
-        eq(groupMembers.playerId, user.id),
+        eq(groupMembers.playerId, session.player.id),
         eq(groupMembers.role, "admin")
       )
     )
@@ -93,7 +87,7 @@ export async function POST(request: NextRequest) {
       format: parsed.data.format,
       maxPlayers: parsed.data.maxPlayers,
       enrollmentDeadline: new Date(parsed.data.enrollmentDeadline),
-      createdBy: user.id,
+      createdBy: session.player.id,
     })
     .returning({ id: matches.id });
 
