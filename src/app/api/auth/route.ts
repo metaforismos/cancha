@@ -23,9 +23,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const phone = parsed.data.phone.startsWith("+")
-    ? parsed.data.phone
-    : `+${parsed.data.phone}`;
+  // Normalize phone: strip spaces/dashes, ensure + prefix
+  let phone = parsed.data.phone.replace(/[\s\-()]/g, "");
+  if (!phone.startsWith("+")) phone = `+${phone}`;
 
   // Find or create player
   let [player] = await db

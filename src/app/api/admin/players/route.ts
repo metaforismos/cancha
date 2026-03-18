@@ -33,10 +33,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Normalize phone: strip spaces/dashes, ensure + prefix
+  let phone = parsed.data.phone.replace(/[\s\-()]/g, "");
+  if (!phone.startsWith("+")) phone = `+${phone}`;
+
   const [newPlayer] = await db
     .insert(players)
     .values({
-      phone: parsed.data.phone,
+      phone,
       name: parsed.data.name,
       alias: parsed.data.alias || null,
       shirtNumber: parsed.data.shirtNumber || null,
