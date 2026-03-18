@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -69,34 +70,132 @@ const NAV_ITEMS = [
   },
 ];
 
+const BASE_MENU_ITEMS = [
+  { label: "Mis grupos", href: "/groups" },
+  { label: "Crear grupo", href: "/groups/new" },
+  { label: "Configuración", href: "/settings" },
+  { label: "Cerrar sesión", href: "#logout" },
+];
+
+const ADMIN_MENU_ITEMS = [
+  { label: "Crear jugador", href: "/admin/players/new" },
+];
+
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/players/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.player?.isAdmin) setIsAdmin(true);
+      })
+      .catch(() => {});
+  }, []);
+
+  const menuItems = isAdmin
+    ? [...BASE_MENU_ITEMS, ...ADMIN_MENU_ITEMS]
+    : BASE_MENU_ITEMS;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-16 max-w-md items-center justify-around px-4">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center gap-1 text-xs transition-colors",
-                isActive
-                  ? "text-green-500"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
+    <>
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50"
+          onClick={() => setMenuOpen(false)}
+        >
+          <div
+            className="absolute bottom-16 left-0 right-0 bg-background border-t border-border rounded-t-xl p-4 space-y-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {menuItems.map((item) =>
+              item.href === "#logout" ? (
+                <button
+                  key="logout"
+                  onClick={async () => {
+                    setMenuOpen(false);
+                    await fetch("/api/auth", { method: "DELETE" });
+                    router.replace("/login");
+                  }}
+                  className="block w-full text-left px-4 py-3 rounded-lg text-sm text-red-500 hover:bg-muted transition-colors"
+                >
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={cn(
+                    "block px-4 py-3 rounded-lg text-sm transition-colors",
+                    pathname === item.href
+                      ? "bg-green-600/20 text-green-500"
+                      : "hover:bg-muted"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-16 max-w-md items-center justify-around px-4">
+          {NAV_ITEMS.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex flex-col items-center gap-1 text-xs transition-colors",
+                  isActive
+                    ? "text-green-500"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className={cn(
+              "flex flex-col items-center gap-1 text-xs transition-colors",
+              menuOpen
+                ? "text-green-500"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              {item.icon}
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+              <line x1="4" x2="20" y1="12" y2="12" />
+              <line x1="4" x2="20" y1="6" y2="6" />
+              <line x1="4" x2="20" y1="18" y2="18" />
+            </svg>
+            <span>Menú</span>
+          </button>
+        </div>
+      </nav>
+    </>
   );
 }

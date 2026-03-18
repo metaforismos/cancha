@@ -37,6 +37,8 @@ export async function PUT(request: NextRequest) {
   await upsertPlayer(session.player.id, {
     phone: session.player.phone,
     name: parsed.data.name,
+    alias: parsed.data.alias,
+    shirtNumber: parsed.data.shirtNumber,
     positions: parsed.data.positions,
     dominantFoot: parsed.data.dominantFoot,
     selfSkills: parsed.data.selfSkills,

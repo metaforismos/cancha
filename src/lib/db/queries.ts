@@ -38,6 +38,8 @@ export async function upsertPlayer(
   data: {
     phone: string;
     name: string;
+    alias?: string | null;
+    shirtNumber?: number | null;
     positions: string[];
     dominantFoot: "left" | "right" | "both";
     selfSkills: Record<string, number>;
@@ -50,6 +52,8 @@ export async function upsertPlayer(
       .update(players)
       .set({
         name: data.name,
+        alias: data.alias || null,
+        shirtNumber: data.shirtNumber || null,
         positions: data.positions,
         dominantFoot: data.dominantFoot,
         selfSkills: data.selfSkills,
@@ -60,6 +64,8 @@ export async function upsertPlayer(
       id,
       phone: data.phone,
       name: data.name,
+      alias: data.alias || null,
+      shirtNumber: data.shirtNumber || null,
       positions: data.positions,
       dominantFoot: data.dominantFoot,
       selfSkills: data.selfSkills,

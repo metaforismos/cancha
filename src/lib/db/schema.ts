@@ -51,12 +51,15 @@ export const players = pgTable("players", {
   id: uuid("id").primaryKey().defaultRandom(),
   phone: text("phone").notNull().unique(),
   name: text("name").notNull(),
+  alias: text("alias"),
+  shirtNumber: integer("shirt_number"),
   positions: jsonb("positions").$type<string[]>().notNull().default([]),
   dominantFoot: dominantFootEnum("dominant_foot").notNull().default("right"),
   selfSkills: jsonb("self_skills")
     .$type<Record<string, number>>()
     .notNull()
     .default({}),
+  isAdmin: boolean("is_admin").notNull().default(false),
   photoUrl: text("photo_url"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
