@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { POSITION_LABELS } from "@/types";
+import type { Position } from "@/types";
 
 interface PlayerData {
   id: string;
@@ -85,7 +87,7 @@ export default function PlayersPage() {
                           variant="secondary"
                           className="text-xs"
                         >
-                          {pos}
+                          {POSITION_LABELS[pos as Position] ?? pos}
                         </Badge>
                       ))}
                     </div>

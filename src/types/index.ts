@@ -5,13 +5,24 @@ export const POSITIONS = [
   "RB",
   "CDM",
   "CM",
-  "CAM",
   "LW",
   "RW",
   "ST",
 ] as const;
 
 export type Position = (typeof POSITIONS)[number];
+
+export const POSITION_LABELS: Record<Position, string> = {
+  GK: "Arquero",
+  CB: "Defensa Central",
+  LB: "Lateral Izq.",
+  RB: "Lateral Der.",
+  CDM: "Volante Def.",
+  CM: "Mediocampista",
+  LW: "Extremo Izq.",
+  RW: "Extremo Der.",
+  ST: "Delantero",
+};
 
 export const SKILLS = [
   "pace",

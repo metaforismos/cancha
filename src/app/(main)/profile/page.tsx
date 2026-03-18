@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { POSITIONS, SKILLS } from "@/types";
+import { POSITIONS, POSITION_LABELS, SKILLS } from "@/types";
 import type { Position, SkillRatings } from "@/types";
 import { toast } from "sonner";
 
@@ -35,7 +35,7 @@ export default function ProfilePage() {
     "right"
   );
   const [skills, setSkills] = useState<SkillRatings>(
-    Object.fromEntries(SKILLS.map((s) => [s, 3])) as SkillRatings
+    Object.fromEntries(SKILLS.map((s) => [s, 5])) as SkillRatings
   );
   const [loading, setLoading] = useState(false);
   const [avgSkills, setAvgSkills] = useState<{
@@ -111,7 +111,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <h1 className="text-2xl font-bold">Mi perfil</h1>
         <Button variant="ghost" size="sm" onClick={handleLogout}>
           Cerrar sesión
@@ -125,7 +125,7 @@ export default function ProfilePage() {
               <span className="text-sm text-muted-foreground">
                 Valoración de la comunidad ({avgSkills.ratingCount} valoraciones)
               </span>
-              <span className="text-xl font-bold">{avgSkills.overall}/5</span>
+              <span className="text-xl font-bold">{avgSkills.overall}/10</span>
             </div>
             {avgSkills.ratingCount < 3 && (
               <p className="text-xs text-yellow-500">
@@ -137,9 +137,9 @@ export default function ProfilePage() {
       )}
 
       <Card>
-        <CardContent className="pt-6 space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Nombre</label>
+        <CardContent className="pt-6 space-y-8">
+          <div>
+            <label className="text-sm font-medium mb-3 block">Nombre</label>
             <Input
               placeholder="Tu nombre"
               value={name}
@@ -147,8 +147,8 @@ export default function ProfilePage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Posiciones</label>
+          <div>
+            <label className="text-sm font-medium mb-3 block">Posiciones</label>
             <div className="flex flex-wrap gap-2">
               {POSITIONS.map((pos) => (
                 <Badge
@@ -161,14 +161,14 @@ export default function ProfilePage() {
                   }
                   onClick={() => togglePosition(pos)}
                 >
-                  {pos}
+                  {POSITION_LABELS[pos]}
                 </Badge>
               ))}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Pie dominante</label>
+          <div>
+            <label className="text-sm font-medium mb-3 block">Pie dominante</label>
             <div className="grid grid-cols-3 gap-2">
               {(["left", "right", "both"] as const).map((foot) => (
                 <Button
@@ -188,24 +188,26 @@ export default function ProfilePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Autoevaluación</CardTitle>
+          <CardTitle className="text-lg">Habilidades</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {SKILLS.map((skill) => (
             <div key={skill} className="space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-sm">{SKILL_LABELS[skill]}</span>
-                <span className="text-sm font-medium">{skills[skill]}/5</span>
+                <span className="text-sm font-medium">{skills[skill]}/10</span>
               </div>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((level) => (
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
                   <button
                     key={level}
                     onClick={() => setSkill(skill, level)}
-                    className={`h-3 flex-1 rounded-sm transition-colors ${
+                    className="flex-1 flex items-center py-2"
+                  >
+                    <span className={`h-3 w-full rounded-sm transition-colors ${
                       level <= skills[skill] ? "bg-green-600" : "bg-muted"
-                    }`}
-                  />
+                    }`} />
+                  </button>
                 ))}
               </div>
             </div>

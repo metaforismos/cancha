@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { POSITIONS, SKILLS } from "@/types";
 
-const skillRatingSchema = z.number().int().min(1).max(5);
+const skillRatingSchema = z.number().int().min(1).max(10);
 
 const skillsSchema = z.object(
   Object.fromEntries(SKILLS.map((s) => [s, skillRatingSchema])) as Record<

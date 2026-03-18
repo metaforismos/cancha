@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SKILLS } from "@/types";
+import { SKILLS, POSITION_LABELS } from "@/types";
+import type { Position } from "@/types";
 import { toast } from "sonner";
 
 const footLabels: Record<string, string> = {
@@ -48,7 +49,7 @@ export default function PlayerProfilePage() {
   const [loading, setLoading] = useState(true);
   const [ratingMode, setRatingMode] = useState(false);
   const [mySkills, setMySkills] = useState<Record<string, number>>(
-    Object.fromEntries(SKILLS.map((s) => [s, 3]))
+    Object.fromEntries(SKILLS.map((s) => [s, 5]))
   );
   const [saving, setSaving] = useState(false);
 
@@ -111,13 +112,13 @@ export default function PlayerProfilePage() {
             <div className="flex gap-1 justify-center mt-2">
               {(player.positions as string[])?.map((pos) => (
                 <Badge key={pos} variant="secondary">
-                  {pos}
+                  {POSITION_LABELS[pos as Position] ?? pos}
                 </Badge>
               ))}
             </div>
             {avgSkills && (
               <p className="text-lg font-bold mt-2">
-                {avgSkills.overall}/5{" "}
+                {avgSkills.overall}/10{" "}
                 <span className="text-xs font-normal text-muted-foreground">
                   ({avgSkills.ratingCount} valoraciones)
                 </span>
@@ -152,22 +153,24 @@ export default function PlayerProfilePage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm">{SKILL_LABELS[skill] || skill}</span>
                     <span className="text-sm font-medium">
-                      {mySkills[skill]}/5
+                      {mySkills[skill]}/10
                     </span>
                   </div>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((level) => (
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
                       <button
                         key={level}
                         onClick={() =>
                           setMySkills((prev) => ({ ...prev, [skill]: level }))
                         }
-                        className={`h-3 flex-1 rounded-sm transition-colors ${
+                        className="flex-1 flex items-center py-2"
+                      >
+                        <span className={`h-3 w-full rounded-sm transition-colors ${
                           level <= mySkills[skill]
                             ? "bg-green-600"
                             : "bg-muted"
-                        }`}
-                      />
+                        }`} />
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -195,10 +198,10 @@ export default function PlayerProfilePage() {
                 <span className="text-sm">{SKILL_LABELS[skill] || skill}</span>
                 <div className="flex gap-1 items-center">
                   <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((level) => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
                       <div
                         key={level}
-                        className={`h-3 w-6 rounded-sm ${
+                        className={`h-3 w-3 rounded-sm ${
                           level <= (displaySkills[skill] || 0)
                             ? "bg-green-600"
                             : "bg-muted"
