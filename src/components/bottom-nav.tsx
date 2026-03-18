@@ -99,41 +99,53 @@ export function BottomNav() {
     ? [...BASE_MENU_ITEMS, ...ADMIN_MENU_ITEMS]
     : BASE_MENU_ITEMS;
 
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay — above bottom nav (z-50) */}
       <div
         className={cn(
-          "fixed inset-0 z-50 bg-black/50 transition-opacity",
+          "fixed inset-0 z-[100] bg-black/50 transition-opacity",
           menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setMenuOpen(false)}
       />
 
-      {/* Right drawer */}
+      {/* Right drawer — above overlay */}
       <div
         className={cn(
-          "fixed top-0 right-0 z-50 h-full w-64 bg-background border-l border-border flex flex-col transition-transform duration-200",
+          "fixed inset-y-0 right-0 z-[101] w-72 bg-background border-l border-border shadow-2xl flex flex-col transition-transform duration-200 ease-out",
           menuOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <span className="font-medium">Menú</span>
-          <button onClick={() => setMenuOpen(false)} className="text-muted-foreground">
+          <span className="font-semibold text-base">Menú</span>
+          <button onClick={() => setMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6 6 18" /><path d="m6 6 12 12" />
             </svg>
           </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {menuItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setMenuOpen(false)}
               className={cn(
-                "block px-4 py-3 rounded-lg text-sm transition-colors",
+                "block px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                 pathname === item.href
                   ? "bg-green-600/20 text-green-500"
                   : "hover:bg-muted"
@@ -151,7 +163,7 @@ export function BottomNav() {
               await fetch("/api/auth", { method: "DELETE" });
               router.replace("/login");
             }}
-            className="block w-full text-left px-4 py-3 rounded-lg text-sm text-red-500 hover:bg-muted transition-colors"
+            className="block w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors"
           >
             Cerrar sesión
           </button>
