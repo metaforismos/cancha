@@ -71,8 +71,8 @@ export default function PlayersPage() {
         ) : (
           players.map((player) => (
             <Link key={player.id} href={`/players/${player.id}`}>
-              <Card className="mb-2">
-                <CardContent className="flex items-center gap-3 py-3">
+              <Card className="mb-2 py-0">
+                <CardContent className="flex items-center gap-3 px-4 py-2">
                   <Avatar>
                     <AvatarFallback className="bg-green-600 text-white">
                       {player.name.slice(0, 2).toUpperCase()}
