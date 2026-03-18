@@ -14,6 +14,7 @@ export const playerProfileSchema = z.object({
   name: z.string().min(2).max(50),
   alias: z.string().max(30).optional().or(z.literal("")),
   shirtNumber: z.number().int().min(1).max(99).optional().nullable(),
+  birthDate: z.string().optional().nullable(),
   positions: z
     .array(z.enum(POSITIONS))
     .min(1, "Select at least one position"),

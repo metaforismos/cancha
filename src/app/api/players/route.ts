@@ -39,6 +39,7 @@ export async function PUT(request: NextRequest) {
     name: parsed.data.name,
     alias: parsed.data.alias,
     shirtNumber: parsed.data.shirtNumber,
+    birthDate: parsed.data.birthDate,
     positions: parsed.data.positions,
     dominantFoot: parsed.data.dominantFoot,
     selfSkills: parsed.data.selfSkills,

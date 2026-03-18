@@ -29,6 +29,7 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [alias, setAlias] = useState("");
   const [shirtNumber, setShirtNumber] = useState<number | null>(null);
+  const [birthDate, setBirthDate] = useState("");
   const [positions, setPositions] = useState<Position[]>([]);
   const [dominantFoot, setDominantFoot] = useState<"left" | "right" | "both">(
     "right"
@@ -51,6 +52,7 @@ export default function ProfilePage() {
           setName(data.player.name);
           setAlias(data.player.alias || "");
           setShirtNumber(data.player.shirtNumber ?? null);
+          setBirthDate(data.player.birthDate || "");
           setPositions(data.player.positions || []);
           setDominantFoot(data.player.dominantFoot || "right");
           if (data.player.selfSkills && Object.keys(data.player.selfSkills).length > 0) {
@@ -88,6 +90,7 @@ export default function ProfilePage() {
           name,
           alias: alias || undefined,
           shirtNumber: shirtNumber || undefined,
+          birthDate: birthDate || undefined,
           positions,
           dominantFoot,
           selfSkills: skills,
@@ -160,6 +163,15 @@ export default function ProfilePage() {
                 }
               />
             </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-3 block">Fecha de nacimiento</label>
+            <Input
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+            />
           </div>
 
           <div>

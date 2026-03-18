@@ -3,6 +3,7 @@ import {
   uuid,
   text,
   timestamp,
+  date,
   jsonb,
   integer,
   boolean,
@@ -59,6 +60,7 @@ export const players = pgTable("players", {
     .$type<Record<string, number>>()
     .notNull()
     .default({}),
+  birthDate: date("birth_date"),
   isAdmin: boolean("is_admin").notNull().default(false),
   photoUrl: text("photo_url"),
   createdAt: timestamp("created_at", { withTimezone: true })

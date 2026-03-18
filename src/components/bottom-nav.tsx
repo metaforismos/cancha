@@ -74,7 +74,6 @@ const BASE_MENU_ITEMS = [
   { label: "Mis grupos", href: "/groups" },
   { label: "Crear grupo", href: "/groups/new" },
   { label: "Configuración", href: "/settings" },
-  { label: "Cerrar sesión", href: "#logout" },
 ];
 
 const ADMIN_MENU_ITEMS = [
@@ -102,47 +101,62 @@ export function BottomNav() {
 
   return (
     <>
-      {menuOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50"
-          onClick={() => setMenuOpen(false)}
-        >
-          <div
-            className="absolute bottom-16 left-0 right-0 bg-background border-t border-border rounded-t-xl p-4 space-y-1"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {menuItems.map((item) =>
-              item.href === "#logout" ? (
-                <button
-                  key="logout"
-                  onClick={async () => {
-                    setMenuOpen(false);
-                    await fetch("/api/auth", { method: "DELETE" });
-                    router.replace("/login");
-                  }}
-                  className="block w-full text-left px-4 py-3 rounded-lg text-sm text-red-500 hover:bg-muted transition-colors"
-                >
-                  {item.label}
-                </button>
-              ) : (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={cn(
-                    "block px-4 py-3 rounded-lg text-sm transition-colors",
-                    pathname === item.href
-                      ? "bg-green-600/20 text-green-500"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              )
-            )}
-          </div>
+      {/* Overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 z-50 bg-black/50 transition-opacity",
+          menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setMenuOpen(false)}
+      />
+
+      {/* Right drawer */}
+      <div
+        className={cn(
+          "fixed top-0 right-0 z-50 h-full w-64 bg-background border-l border-border flex flex-col transition-transform duration-200",
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <span className="font-medium">Menú</span>
+          <button onClick={() => setMenuOpen(false)} className="text-muted-foreground">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+            </svg>
+          </button>
         </div>
-      )}
+
+        <nav className="flex-1 p-4 space-y-1">
+          {menuItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className={cn(
+                "block px-4 py-3 rounded-lg text-sm transition-colors",
+                pathname === item.href
+                  ? "bg-green-600/20 text-green-500"
+                  : "hover:bg-muted"
+              )}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-border">
+          <button
+            onClick={async () => {
+              setMenuOpen(false);
+              await fetch("/api/auth", { method: "DELETE" });
+              router.replace("/login");
+            }}
+            className="block w-full text-left px-4 py-3 rounded-lg text-sm text-red-500 hover:bg-muted transition-colors"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-16 max-w-md items-center justify-around px-4">

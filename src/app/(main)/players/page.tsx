@@ -13,6 +13,13 @@ interface PlayerData {
   id: string;
   name: string;
   positions: string[];
+  selfSkills?: Record<string, number>;
+}
+
+function getOverall(skills?: Record<string, number>): number | null {
+  if (!skills || Object.keys(skills).length === 0) return null;
+  const vals = Object.values(skills);
+  return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
 }
 
 export default function PlayersPage() {
@@ -92,6 +99,11 @@ export default function PlayersPage() {
                       ))}
                     </div>
                   </div>
+                  {getOverall(player.selfSkills) !== null && (
+                    <span className="text-sm font-bold text-green-500">
+                      {getOverall(player.selfSkills)}
+                    </span>
+                  )}
                 </CardContent>
               </Card>
             </Link>
