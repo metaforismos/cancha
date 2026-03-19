@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { POSITION_LABELS } from "@/types";
+import { POSITIONS, POSITION_LABELS } from "@/types";
 import type { Position } from "@/types";
 
 interface PlayerData {
@@ -26,13 +26,13 @@ export default function PlayersPage() {
   const [search, setSearch] = useState("");
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [posFilter, setPosFilter] = useState<Position | null>(null);
 
   const fetchPlayers = useCallback((q: string) => {
     setLoading(true);
     fetch(`/api/players?q=${encodeURIComponent(q)}`)
       .then((r) => r.json())
       .then((data) => {
-        // Handle both formats from searchPlayers
         const normalized = Array.isArray(data)
           ? data.map((d: PlayerData | { player: PlayerData }) =>
               "player" in d ? d.player : d
@@ -53,6 +53,19 @@ export default function PlayersPage() {
     return () => clearTimeout(timeout);
   }, [search, fetchPlayers]);
 
+  // Filter by position and sort by score desc
+  const filteredPlayers = useMemo(() => {
+    let list = players;
+    if (posFilter) {
+      list = list.filter((p) => p.positions?.includes(posFilter));
+    }
+    return [...list].sort((a, b) => {
+      const scoreA = getOverall(a.selfSkills) ?? -1;
+      const scoreB = getOverall(b.selfSkills) ?? -1;
+      return scoreB - scoreA;
+    });
+  }, [players, posFilter]);
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Jugadores</h1>
@@ -63,23 +76,49 @@ export default function PlayersPage() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
+      {/* Position filter */}
+      <div className="flex gap-1.5 flex-wrap">
+        <Badge
+          variant={posFilter === null ? "default" : "outline"}
+          className={`cursor-pointer text-xs ${posFilter === null ? "bg-green-600" : ""}`}
+          onClick={() => setPosFilter(null)}
+        >
+          Todos
+        </Badge>
+        {POSITIONS.map((pos) => (
+          <Badge
+            key={pos}
+            variant={posFilter === pos ? "default" : "outline"}
+            className={`cursor-pointer text-xs ${posFilter === pos ? "bg-green-600" : ""}`}
+            onClick={() => setPosFilter(posFilter === pos ? null : pos)}
+          >
+            {POSITION_LABELS[pos]}
+          </Badge>
+        ))}
+      </div>
+
       <div className="space-y-3">
         {loading ? (
           <div className="text-center text-muted-foreground py-12">
             <p>Cargando...</p>
           </div>
-        ) : players.length === 0 ? (
+        ) : filteredPlayers.length === 0 ? (
           <div className="text-center text-muted-foreground py-12">
             <p className="text-lg font-medium">No se encontraron jugadores</p>
             <p className="text-sm">
-              {search ? "Intenta otra búsqueda" : "Únete a un grupo para ver jugadores"}
+              {search || posFilter
+                ? "Intenta con otros filtros"
+                : "Únete a un grupo para ver jugadores"}
             </p>
           </div>
         ) : (
-          players.map((player) => (
+          filteredPlayers.map((player, idx) => (
             <Link key={player.id} href={`/players/${player.id}`}>
               <Card className="mb-2 py-0">
                 <CardContent className="flex items-center gap-3 px-4 py-2">
+                  <span className="text-xs text-muted-foreground w-5 text-right">
+                    {idx + 1}
+                  </span>
                   <Avatar>
                     <AvatarFallback className="bg-green-600 text-white">
                       {player.name.slice(0, 2).toUpperCase()}
