@@ -8,10 +8,12 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  || (process.env.RAILWAY_PUBLIC_DOMAIN && `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`)
+  || "https://getcancha.up.railway.app";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || "https://getcancha.up.railway.app"
-  ),
+  metadataBase: new URL(baseUrl),
   title: "⚽ Cancha — Partidos de fútbol cerca de ti",
   description:
     "Crea tu perfil de jugador y participa en partidos de tu zona. Arma equipos equilibrados con IA.",
@@ -28,12 +30,22 @@ export const metadata: Metadata = {
     siteName: "Cancha",
     locale: "es_MX",
     type: "website",
+    url: baseUrl,
+    images: [
+      {
+        url: `${baseUrl}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "Cancha — Partidos de futbol cerca de ti",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "⚽ Cancha — Partidos de fútbol cerca de ti",
     description:
       "Crea tu perfil de jugador y participa en partidos de tu zona.",
+    images: [`${baseUrl}/opengraph-image`],
   },
 };
 
