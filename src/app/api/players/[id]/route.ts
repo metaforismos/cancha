@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getPlayerAvgSkills, getRatingByPair } from "@/lib/db/queries";
+import { getPlayerAvgSkills, getRatingByPair, getPlayerRatingsWithRaters } from "@/lib/db/queries";
 import { db } from "@/lib/db";
 import { players } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -29,11 +29,16 @@ export async function GET(
 
   const avgSkills = await getPlayerAvgSkills(id);
   const myRating = await getRatingByPair(session.player.id, id);
+  const isMe = session.player.id === id;
+
+  // Only return individual ratings to the profile owner
+  const individualRatings = isMe ? await getPlayerRatingsWithRaters(id) : [];
 
   return NextResponse.json({
     player,
     avgSkills,
     myRating,
-    isMe: session.player.id === id,
+    isMe,
+    individualRatings,
   });
 }

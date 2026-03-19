@@ -26,6 +26,12 @@ const SKILL_LABELS: Record<string, string> = {
   heading: "Cabeceo",
 };
 
+interface IndividualRating {
+  rater: { id: string; name: string };
+  skills: Record<string, number>;
+  createdAt: string;
+}
+
 interface PlayerProfile {
   player: {
     id: string;
@@ -41,6 +47,7 @@ interface PlayerProfile {
   } | null;
   myRating: { skills: Record<string, number> } | null;
   isMe: boolean;
+  individualRatings: IndividualRating[];
 }
 
 export default function PlayerProfilePage() {
@@ -52,6 +59,7 @@ export default function PlayerProfilePage() {
     Object.fromEntries(SKILLS.map((s) => [s, 5]))
   );
   const [saving, setSaving] = useState(false);
+  const [expandedRater, setExpandedRater] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/players/${id}`)
@@ -92,7 +100,7 @@ export default function PlayerProfilePage() {
     );
   }
 
-  const { player, avgSkills, isMe } = data;
+  const { player, avgSkills, isMe, individualRatings } = data;
   const displaySkills = avgSkills?.skills || player.selfSkills || {};
 
   return (
@@ -218,6 +226,108 @@ export default function PlayerProfilePage() {
           )}
         </CardContent>
       </Card>
+
+      {isMe && individualRatings && individualRatings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Valoraciones individuales</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {individualRatings.map((rating) => {
+              const isExpanded = expandedRater === rating.rater.id;
+              const raterAvg =
+                Math.round(
+                  (Object.values(rating.skills).reduce((a, b) => a + b, 0) /
+                    Object.values(rating.skills).length) *
+                    10
+                ) / 10;
+
+              return (
+                <div
+                  key={rating.rater.id}
+                  className="border rounded-lg overflow-hidden"
+                >
+                  <button
+                    onClick={() =>
+                      setExpandedRater(isExpanded ? null : rating.rater.id)
+                    }
+                    className="w-full flex items-center justify-between px-3 py-3 text-left hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-green-600 text-white text-xs">
+                          {rating.rater.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <span className="text-sm font-medium">
+                          {rating.rater.name}
+                        </span>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(rating.createdAt).toLocaleDateString(
+                            "es-ES",
+                            { day: "numeric", month: "short", year: "numeric" }
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold">{raterAvg}/10</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`transition-transform ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </button>
+                  {isExpanded && (
+                    <div className="px-3 pb-3 space-y-2 border-t pt-2">
+                      {SKILLS.map((skill) => (
+                        <div
+                          key={skill}
+                          className="flex items-center justify-between"
+                        >
+                          <span className="text-xs text-muted-foreground">
+                            {SKILL_LABELS[skill] || skill}
+                          </span>
+                          <div className="flex gap-0.5 items-center">
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                                <div
+                                  key={level}
+                                  className={`h-2 w-2 rounded-sm ${
+                                    level <= (rating.skills[skill] || 0)
+                                      ? "bg-green-600"
+                                      : "bg-muted"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-muted-foreground w-5 text-right">
+                              {rating.skills[skill] || 0}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

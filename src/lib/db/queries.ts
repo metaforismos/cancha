@@ -148,6 +148,18 @@ export async function getRatingByPair(raterId: string, ratedId: string) {
   return rating ?? null;
 }
 
+export async function getPlayerRatingsWithRaters(playerId: string) {
+  return db
+    .select({
+      rater: { id: players.id, name: players.name },
+      skills: playerRatings.skills,
+      createdAt: playerRatings.createdAt,
+    })
+    .from(playerRatings)
+    .innerJoin(players, eq(playerRatings.raterId, players.id))
+    .where(eq(playerRatings.ratedId, playerId));
+}
+
 // ─── Default Group ──────────────────────────────────────
 
 const DEFAULT_GROUP_NAME = "Cancha";
