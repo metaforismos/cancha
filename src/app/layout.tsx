@@ -9,6 +9,9 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "https://getcancha.up.railway.app"
+  ),
   title: "⚽ Cancha — Partidos de fútbol cerca de ti",
   description:
     "Crea tu perfil de jugador y participa en partidos de tu zona. Arma equipos equilibrados con IA.",
