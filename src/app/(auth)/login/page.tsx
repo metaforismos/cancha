@@ -109,8 +109,8 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="overflow-visible">
+          <CardContent className="pt-6 overflow-visible">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Tu número de celular</label>
