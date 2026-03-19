@@ -10,7 +10,7 @@ import {
   matchResults,
   matchEvents,
 } from "./schema";
-import { eq, and, desc, sql, ilike, count } from "drizzle-orm";
+import { eq, ne, and, desc, sql, ilike, count } from "drizzle-orm";
 import { SKILLS } from "@/types";
 
 // ─── Players ─────────────────────────────────────────────
@@ -77,6 +77,9 @@ export async function upsertPlayer(
 }
 
 export async function searchPlayers(query: string, groupId?: string) {
+  // Always exclude players who haven't completed their profile (empty name)
+  const hasName = ne(players.name, "");
+
   if (groupId) {
     return db
       .select({ player: players })
@@ -85,6 +88,7 @@ export async function searchPlayers(query: string, groupId?: string) {
       .where(
         and(
           eq(groupMembers.groupId, groupId),
+          hasName,
           query ? ilike(players.name, `%${query}%`) : undefined
         )
       );
@@ -93,7 +97,7 @@ export async function searchPlayers(query: string, groupId?: string) {
   return db
     .select()
     .from(players)
-    .where(query ? ilike(players.name, `%${query}%`) : undefined)
+    .where(and(hasName, query ? ilike(players.name, `%${query}%`) : undefined))
     .limit(50);
 }
 
