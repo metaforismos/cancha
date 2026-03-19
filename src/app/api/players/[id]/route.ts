@@ -31,8 +31,7 @@ export async function GET(
   const myRating = await getRatingByPair(session.player.id, id);
   const isMe = session.player.id === id;
 
-  // Only return individual ratings to the profile owner
-  const individualRatings = isMe ? await getPlayerRatingsWithRaters(id) : [];
+  const individualRatings = await getPlayerRatingsWithRaters(id);
 
   return NextResponse.json({
     player,

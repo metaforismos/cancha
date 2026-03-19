@@ -227,7 +227,7 @@ export default function PlayerProfilePage() {
         </CardContent>
       </Card>
 
-      {isMe && individualRatings && individualRatings.length > 0 && (
+      {individualRatings && individualRatings.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Valoraciones individuales</CardTitle>
