@@ -148,6 +148,61 @@ export async function getRatingByPair(raterId: string, ratedId: string) {
   return rating ?? null;
 }
 
+// ─── Default Group ──────────────────────────────────────
+
+const DEFAULT_GROUP_NAME = "Cancha";
+
+export async function getOrCreateDefaultGroup(creatorId: string) {
+  // Find existing default group
+  const [existing] = await db
+    .select()
+    .from(groups)
+    .where(eq(groups.name, DEFAULT_GROUP_NAME))
+    .limit(1);
+
+  if (existing) return existing;
+
+  // Create default group
+  const [group] = await db
+    .insert(groups)
+    .values({ name: DEFAULT_GROUP_NAME, createdBy: creatorId })
+    .returning();
+
+  // Make creator admin
+  await db.insert(groupMembers).values({
+    groupId: group.id,
+    playerId: creatorId,
+    role: "admin",
+  });
+
+  return group;
+}
+
+export async function ensurePlayerInDefaultGroup(playerId: string) {
+  const group = await getOrCreateDefaultGroup(playerId);
+
+  const [existing] = await db
+    .select()
+    .from(groupMembers)
+    .where(
+      and(
+        eq(groupMembers.groupId, group.id),
+        eq(groupMembers.playerId, playerId)
+      )
+    )
+    .limit(1);
+
+  if (!existing) {
+    await db.insert(groupMembers).values({
+      groupId: group.id,
+      playerId: playerId,
+      role: "player",
+    });
+  }
+
+  return group;
+}
+
 // ─── Groups ──────────────────────────────────────────────
 
 export async function getPlayerGroups(playerId: string) {

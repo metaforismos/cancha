@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { players } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { createSession, destroySession } from "@/lib/auth";
+import { ensurePlayerInDefaultGroup } from "@/lib/db/queries";
 import { z } from "zod";
 
 const phoneSchema = z.object({
@@ -51,6 +52,9 @@ export async function POST(request: NextRequest) {
   }
 
   await createSession(player.id);
+
+  // Auto-add player to the default group
+  await ensurePlayerInDefaultGroup(player.id);
 
   const needsProfile = !player.name;
 

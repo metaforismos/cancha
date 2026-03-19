@@ -28,7 +28,7 @@ export const ratingSchema = z.object({
 });
 
 export const matchCreateSchema = z.object({
-  groupId: z.string().uuid(),
+  groupId: z.string().uuid().optional(),
   date: z.string().datetime(),
   location: z.string().min(1),
   locationUrl: z.string().url().optional().or(z.literal("")),

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { FORMAT_PLAYER_COUNTS, MATCH_FORMATS } from "@/types";
 import type { MatchFormat } from "@/types";
 import { toast } from "sonner";
@@ -17,23 +17,12 @@ export default function NewMatchPage() {
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [locationUrl, setLocationUrl] = useState("");
-  const [groupId, setGroupId] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/groups")
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setGroupId(data[0].group.id);
-        }
-      });
-  }, []);
 
   const maxPlayers = FORMAT_PLAYER_COUNTS[format];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!date || !time || !location || !groupId) return;
+    if (!date || !time || !location) return;
 
     setLoading(true);
 
@@ -45,7 +34,6 @@ export default function NewMatchPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          groupId,
           date: matchDate.toISOString(),
           location,
           locationUrl: locationUrl || undefined,
@@ -61,10 +49,10 @@ export default function NewMatchPage() {
       }
 
       const { id } = await res.json();
-      toast.success("¡Partido creado!");
+      toast.success("Partido creado!");
       router.push(`/matches/${id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Algo salió mal");
+      toast.error(err instanceof Error ? err.message : "Algo salio mal");
     } finally {
       setLoading(false);
     }
@@ -93,7 +81,7 @@ export default function NewMatchPage() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                {maxPlayers} jugadores máx.
+                {maxPlayers} jugadores max.
               </p>
             </div>
 
@@ -119,7 +107,7 @@ export default function NewMatchPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Ubicación</label>
+              <label className="text-sm font-medium">Ubicacion</label>
               <Input
                 placeholder="Nombre del lugar"
                 value={location}

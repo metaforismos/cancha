@@ -26,6 +26,7 @@ const SKILL_LABELS: Record<string, string> = {
 };
 
 export default function ProfilePage() {
+  const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [alias, setAlias] = useState("");
   const [shirtNumber, setShirtNumber] = useState<number | null>(null);
@@ -49,6 +50,7 @@ export default function ProfilePage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.player) {
+          setPhone(data.player.phone || "");
           setName(data.player.name);
           setAlias(data.player.alias || "");
           setShirtNumber(data.player.shirtNumber ?? null);
@@ -132,6 +134,16 @@ export default function ProfilePage() {
 
       <Card>
         <CardContent className="pt-6 space-y-8">
+          <div>
+            <label className="text-sm font-medium mb-3 block">Celular</label>
+            <Input
+              type="tel"
+              value={phone}
+              disabled
+              className="bg-muted text-muted-foreground"
+            />
+          </div>
+
           <div>
             <label className="text-sm font-medium mb-3 block">Nombre</label>
             <Input

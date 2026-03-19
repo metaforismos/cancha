@@ -52,36 +52,43 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-600 text-2xl font-bold text-white">
-            C
-          </div>
-          <CardTitle className="text-2xl">Cancha</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Ingresa tu número de teléfono para comenzar
+    <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-b from-green-950/30 to-background">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="text-center space-y-3">
+          <div className="text-6xl">&#9917;</div>
+          <h1 className="text-3xl font-bold tracking-tight">Cancha</h1>
+          <p className="text-muted-foreground leading-snug">
+            Crea tu perfil de jugador y participa en partidos de tu zona
           </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <Input
-              type="tel"
-              placeholder="+1234567890"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="text-center text-lg"
-            />
-            <Button
-              type="submit"
-              className="w-full bg-green-600 hover:bg-green-700"
-              disabled={loading || !phone}
-            >
-              {loading ? "Entrando..." : "Entrar"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+        </div>
+
+        <Card>
+          <CardContent className="pt-6">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tu número de celular</label>
+                <Input
+                  type="tel"
+                  placeholder="+52 1234567890"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="text-center text-lg"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-base h-12"
+                disabled={loading || !phone}
+              >
+                {loading ? "Entrando..." : "Comenzar"}
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Al continuar, aceptas unirte a la comunidad de jugadores
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
