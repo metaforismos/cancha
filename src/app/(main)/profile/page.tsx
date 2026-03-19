@@ -136,12 +136,12 @@ export default function ProfilePage() {
         <CardContent className="pt-6 space-y-8">
           <div>
             <label className="text-sm font-medium mb-3 block">Celular</label>
-            <Input
-              type="tel"
-              value={phone}
-              disabled
-              className="bg-muted text-muted-foreground"
-            />
+            <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted text-muted-foreground text-sm">
+              {phone.startsWith("52") && "🇲🇽 +52 "}
+              {phone.startsWith("56") && "🇨🇱 +56 "}
+              {phone.startsWith("54") && "🇦🇷 +54 "}
+              {phone.startsWith("52") ? phone.slice(2) : phone.startsWith("56") ? phone.slice(2) : phone.startsWith("54") ? phone.slice(2) : phone}
+            </div>
           </div>
 
           <div>

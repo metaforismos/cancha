@@ -4,24 +4,71 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
+const COUNTRIES = [
+  { code: "MX", prefix: "52", flag: "🇲🇽", label: "México", digits: 10, placeholder: "55 1234 5678" },
+  { code: "CL", prefix: "56", flag: "🇨🇱", label: "Chile", digits: 9, placeholder: "9 1234 5678" },
+  { code: "AR", prefix: "54", flag: "🇦🇷", label: "Argentina", digits: 10, placeholder: "11 1234 5678" },
+] as const;
+
+type CountryCode = (typeof COUNTRIES)[number]["code"];
+
+function formatPhoneDisplay(digits: string, country: CountryCode): string {
+  if (!digits) return "";
+  if (country === "MX") {
+    // 55 1234 5678
+    return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, "$1 $2 $3").trim();
+  }
+  if (country === "CL") {
+    // 9 1234 5678
+    return digits.replace(/(\d{1})(\d{4})(\d{0,4})/, "$1 $2 $3").trim();
+  }
+  if (country === "AR") {
+    // 11 1234 5678
+    return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, "$1 $2 $3").trim();
+  }
+  return digits;
+}
+
 export default function LoginPage() {
+  const [country, setCountry] = useState<CountryCode>("MX");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
   const router = useRouter();
+
+  const selectedCountry = COUNTRIES.find((c) => c.code === country)!;
+
+  function handlePhoneChange(value: string) {
+    const digits = value.replace(/\D/g, "");
+    // Limit to max digits for the selected country
+    setPhone(digits.slice(0, selectedCountry.digits));
+  }
+
+  function getValidationError(): string | null {
+    if (!phone) return null;
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < selectedCountry.digits) {
+      return `El número debe tener ${selectedCountry.digits} dígitos para ${selectedCountry.label}`;
+    }
+    // Country-specific first-digit validation
+    if (country === "CL" && !digits.startsWith("9")) {
+      return "Los celulares en Chile comienzan con 9";
+    }
+    return null;
+  }
+
+  const isValid = phone.length === selectedCountry.digits && !getValidationError();
+  const validationError = getValidationError();
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!phone) return;
+    if (!isValid) return;
 
-    // Validate phone format: at least 10 digits
-    const digitsOnly = phone.replace(/\D/g, "");
-    if (digitsOnly.length < 10) {
-      toast.error("El número debe tener al menos 10 dígitos");
-      return;
-    }
+    // Full number with country prefix
+    const fullNumber = selectedCountry.prefix + phone;
 
     setLoading(true);
 
@@ -29,7 +76,7 @@ export default function LoginPage() {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: digitsOnly }),
+        body: JSON.stringify({ phone: fullNumber }),
       });
 
       const data = await res.json();
@@ -67,18 +114,65 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Tu número de celular</label>
-                <Input
-                  type="tel"
-                  placeholder="+52 1234567890"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="text-center text-lg"
-                />
+                <div className="flex gap-2">
+                  {/* Country selector */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowCountryPicker(!showCountryPicker)}
+                      className="flex items-center gap-1 h-11 px-3 rounded-md border border-input bg-background text-sm hover:bg-accent transition-colors"
+                    >
+                      <span className="text-lg">{selectedCountry.flag}</span>
+                      <span className="text-muted-foreground">+{selectedCountry.prefix}</span>
+                      <svg className="w-3 h-3 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {showCountryPicker && (
+                      <div className="absolute top-full left-0 mt-1 w-56 bg-popover border rounded-md shadow-lg z-50 overflow-hidden">
+                        {COUNTRIES.map((c) => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => {
+                              setCountry(c.code);
+                              setPhone("");
+                              setShowCountryPicker(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent transition-colors ${
+                              c.code === country ? "bg-accent/50" : ""
+                            }`}
+                          >
+                            <span className="text-lg">{c.flag}</span>
+                            <span className="font-medium">{c.label}</span>
+                            <span className="text-muted-foreground ml-auto">+{c.prefix}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* Phone input */}
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder={selectedCountry.placeholder}
+                    value={formatPhoneDisplay(phone, country)}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    className="flex-1 text-lg h-11"
+                  />
+                </div>
+                {/* Validation feedback */}
+                {validationError && phone.length > 0 && (
+                  <p className="text-xs text-red-500 mt-1">{validationError}</p>
+                )}
+                {isValid && (
+                  <p className="text-xs text-green-500 mt-1">✓ Número válido</p>
+                )}
               </div>
               <Button
                 type="submit"
                 className="w-full bg-green-600 hover:bg-green-700 text-base h-12"
-                disabled={loading || !phone}
+                disabled={loading || !isValid}
               >
                 {loading ? "Entrando..." : "Comenzar"}
               </Button>
