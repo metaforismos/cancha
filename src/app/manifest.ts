@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Cancha",
+    name: "⚽ Cancha",
     short_name: "Cancha",
-    description: "Gestiona partidos de fútbol y genera alineaciones equilibradas",
+    description: "Crea tu perfil de jugador y participa en partidos de tu zona",
     start_url: "/",
     display: "standalone",
     background_color: "#09090b",
