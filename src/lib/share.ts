@@ -5,6 +5,8 @@ interface ShareableMatch {
   date: string;
   location: string;
   format: string;
+  teamAName?: string | null;
+  teamBName?: string | null;
   enrolledCount?: number;
   maxPlayers?: number | null;
 }
@@ -39,7 +41,7 @@ export function buildMatchShareMessage(match: ShareableMatch): string {
       : "https://getcancha.up.railway.app";
 
   return [
-    `⚽ Partido ${match.format} el ${dateStr}`,
+    `⚽ ${match.teamAName || "Equipo A"} vs ${match.teamBName || "Equipo B"} (${match.format}) — ${dateStr}`,
     `📍 ${match.location}`,
     spotsLine,
     "",

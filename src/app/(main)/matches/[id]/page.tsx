@@ -166,10 +166,9 @@ export default function MatchDetailPage() {
     }
   }
 
-  const hasTeamNames = match.teamAName && match.teamBName;
-  const displayTitle = hasTeamNames
-    ? `${match.teamAName} vs ${match.teamBName}`
-    : match.format;
+  const teamA = match.teamAName || "Equipo A";
+  const teamB = match.teamBName || "Equipo B";
+  const displayTitle = `${teamA} vs ${teamB}`;
 
   return (
     <div className="space-y-5">
@@ -202,9 +201,7 @@ export default function MatchDetailPage() {
             <div className="space-y-1.5">
               <h2 className="text-xl font-bold leading-tight">{displayTitle}</h2>
               <div className="flex flex-wrap items-center gap-1.5">
-                {hasTeamNames && (
-                  <Badge variant="secondary" className="text-xs">{match.format}</Badge>
-                )}
+                <Badge variant="secondary" className="text-xs">{match.format}</Badge>
                 {match.category === "league" && (
                   <Badge variant="secondary" className="text-xs flex items-center gap-1">
                     <Trophy className="h-3 w-3" />

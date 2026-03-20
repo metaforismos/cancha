@@ -137,7 +137,8 @@ function MatchCard({ match }: { match: MatchData }) {
   const maxPlayers = match.maxPlayers && match.maxPlayers < 999 ? match.maxPlayers : null;
   const isLeague = match.category === "league";
   const isTraining = match.category === "training";
-  const hasTeamNames = match.teamAName && match.teamBName;
+  const teamA = match.teamAName || "Equipo A";
+  const teamB = match.teamBName || "Equipo B";
 
   return (
     <Card className="overflow-hidden">
@@ -146,12 +147,10 @@ function MatchCard({ match }: { match: MatchData }) {
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1 min-w-0">
             <h3 className="font-semibold text-base leading-tight truncate">
-              {hasTeamNames ? `${match.teamAName} vs ${match.teamBName}` : match.format}
+              {teamA} vs {teamB}
             </h3>
             <div className="flex flex-wrap items-center gap-1.5">
-              {hasTeamNames && (
-                <span className="text-xs text-muted-foreground">{match.format}</span>
-              )}
+              <span className="text-xs text-muted-foreground">{match.format}</span>
               {isLeague && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 flex items-center gap-0.5">
                   <Trophy className="h-2.5 w-2.5" />

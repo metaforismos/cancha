@@ -31,8 +31,8 @@ export default function NewMatchPage() {
   const [locationUrl, setLocationUrl] = useState("");
   const [clubId, setClubId] = useState(preselectedClubId || "");
   const [clubs, setClubs] = useState<ClubOption[]>([]);
-  const [teamAName, setTeamAName] = useState("");
-  const [teamBName, setTeamBName] = useState("");
+  const [teamAName, setTeamAName] = useState("Equipo A");
+  const [teamBName, setTeamBName] = useState("Equipo B");
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [createdMatch, setCreatedMatch] = useState<{
     id: string;
