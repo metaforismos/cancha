@@ -3,7 +3,6 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matchEnrollments, matches } from "@/lib/db/schema";
 import {
-  getPlayerAvgSkills,
   getOrCreateDefaultGroup,
   isPlayerInClub,
 } from "@/lib/db/queries";
@@ -21,18 +20,6 @@ export async function POST(request: NextRequest) {
 
   if (!matchId) {
     return NextResponse.json({ error: "matchId required" }, { status: 400 });
-  }
-
-  // Check rating gate: need ≥3 ratings
-  const avgSkills = await getPlayerAvgSkills(session.player.id);
-  if (!avgSkills || avgSkills.ratingCount < 3) {
-    return NextResponse.json(
-      {
-        error: "You need at least 3 ratings from other players before joining matches",
-        ratingCount: avgSkills?.ratingCount ?? 0,
-      },
-      { status: 403 }
-    );
   }
 
   // Get match

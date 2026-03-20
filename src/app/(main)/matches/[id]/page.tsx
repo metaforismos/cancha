@@ -145,9 +145,6 @@ export default function MatchDetailPage() {
     completed: "finalizado",
   };
 
-  const ratingCount = data.ratingCount ?? 0;
-  const needsRatings = ratingCount < 3;
-
   function handleWhatsAppShare() {
     const message = buildMatchShareMessage({
       id: match.id,
@@ -272,12 +269,6 @@ export default function MatchDetailPage() {
       {/* Primary action - enrollment */}
       {match.status === "open" && (
         <div className="space-y-3">
-          {needsRatings && !isEnrolled && (
-            <div className="rounded-xl bg-yellow-600/10 border border-yellow-600/20 px-4 py-3 text-sm text-yellow-500">
-              Necesitas {3 - ratingCount} valoración{3 - ratingCount !== 1 ? "es" : ""} más para inscribirte. ¡Pide a tus compañeros que te valoren!
-            </div>
-          )}
-
           {isEnrolled ? (
             <Button
               variant="outline"
@@ -291,7 +282,7 @@ export default function MatchDetailPage() {
             <Button
               className="w-full h-12 text-base bg-green-600 hover:bg-green-700"
               onClick={handleJoin}
-              disabled={enrolling || needsRatings}
+              disabled={enrolling}
             >
               {enrolling ? "Uniéndome..." : "Unirme al partido"}
             </Button>

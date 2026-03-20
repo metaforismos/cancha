@@ -213,11 +213,6 @@ export default function ProfilePage() {
                       ({avgSkills.ratingCount} valoraciones)
                     </span>
                   </p>
-                  {avgSkills.ratingCount < 3 && (
-                    <p className="text-xs text-yellow-500 mt-0.5">
-                      Necesitas {3 - avgSkills.ratingCount} más para unirte a partidos
-                    </p>
-                  )}
                 </div>
               )}
             </div>
