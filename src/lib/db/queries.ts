@@ -252,6 +252,113 @@ export async function isGroupAdmin(groupId: string, playerId: string) {
   return !!membership;
 }
 
+// ─── Clubs ──────────────────────────────────────────────
+
+export async function getAllClubs(filters?: {
+  city?: string;
+  country?: string;
+}) {
+  const conditions = [];
+  if (filters?.city) {
+    conditions.push(ilike(groups.city, filters.city));
+  }
+  if (filters?.country) {
+    conditions.push(ilike(groups.country, filters.country));
+  }
+  // Exclude default "Cancha" group from clubs listing
+  conditions.push(ne(groups.name, DEFAULT_GROUP_NAME));
+
+  const rows = await db
+    .select({
+      group: groups,
+      memberCount: count(groupMembers.playerId),
+    })
+    .from(groups)
+    .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .groupBy(groups.id)
+    .orderBy(groups.name);
+
+  return rows;
+}
+
+export async function getClubById(groupId: string) {
+  const [row] = await db
+    .select({
+      group: groups,
+      memberCount: count(groupMembers.playerId),
+    })
+    .from(groups)
+    .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+    .where(eq(groups.id, groupId))
+    .groupBy(groups.id)
+    .limit(1);
+  return row ?? null;
+}
+
+export async function isPlayerInClub(groupId: string, playerId: string) {
+  const [membership] = await db
+    .select()
+    .from(groupMembers)
+    .where(
+      and(
+        eq(groupMembers.groupId, groupId),
+        eq(groupMembers.playerId, playerId)
+      )
+    )
+    .limit(1);
+  return !!membership;
+}
+
+export async function joinClub(groupId: string, playerId: string) {
+  await db.insert(groupMembers).values({
+    groupId,
+    playerId,
+    role: "player",
+  });
+}
+
+export async function leaveClub(groupId: string, playerId: string) {
+  // Check if player is sole admin
+  const isAdmin = await isGroupAdmin(groupId, playerId);
+  if (isAdmin) {
+    const admins = await db
+      .select()
+      .from(groupMembers)
+      .where(
+        and(
+          eq(groupMembers.groupId, groupId),
+          eq(groupMembers.role, "admin")
+        )
+      );
+    if (admins.length <= 1) {
+      throw new Error("No puedes salir del club siendo el unico administrador");
+    }
+  }
+
+  await db
+    .delete(groupMembers)
+    .where(
+      and(
+        eq(groupMembers.groupId, groupId),
+        eq(groupMembers.playerId, playerId)
+      )
+    );
+}
+
+export async function getDistinctClubLocations() {
+  const rows = await db
+    .selectDistinct({ city: groups.city, country: groups.country })
+    .from(groups)
+    .where(
+      and(
+        ne(groups.name, DEFAULT_GROUP_NAME),
+        sql`${groups.city} IS NOT NULL`
+      )
+    );
+  return rows;
+}
+
 // ─── Matches ─────────────────────────────────────────────
 
 export async function getGroupMatches(groupId: string) {

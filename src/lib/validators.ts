@@ -71,7 +71,19 @@ export const lineupResponseSchema = z.object({
   justification: z.string(),
 });
 
+export const clubCreateSchema = z.object({
+  name: z.string().min(2).max(100),
+  city: z.string().min(1).max(100),
+  country: z.string().min(1).max(100),
+  description: z.string().max(500).optional().or(z.literal("")),
+  logoUrl: z.string().url().optional().or(z.literal("")),
+});
+
+export const clubUpdateSchema = clubCreateSchema.partial();
+
 export type PlayerProfileInput = z.infer<typeof playerProfileSchema>;
 export type RatingInput = z.infer<typeof ratingSchema>;
 export type MatchCreateInput = z.infer<typeof matchCreateSchema>;
 export type LineupResponseParsed = z.infer<typeof lineupResponseSchema>;
+export type ClubCreateInput = z.infer<typeof clubCreateSchema>;
+export type ClubUpdateInput = z.infer<typeof clubUpdateSchema>;

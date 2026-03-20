@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matchEnrollments, matches } from "@/lib/db/schema";
-import { getEnrollmentCount, getPlayerAvgSkills } from "@/lib/db/queries";
+import {
+  getEnrollmentCount,
+  getPlayerAvgSkills,
+  getOrCreateDefaultGroup,
+  isPlayerInClub,
+} from "@/lib/db/queries";
 import { eq, and } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
@@ -43,6 +48,18 @@ export async function POST(request: NextRequest) {
 
   if (match.status !== "open") {
     return NextResponse.json({ error: "Match is not open" }, { status: 400 });
+  }
+
+  // Club membership check: if match belongs to a non-default club, verify membership
+  const defaultGroup = await getOrCreateDefaultGroup(session.player.id);
+  if (match.groupId !== defaultGroup.id) {
+    const isMember = await isPlayerInClub(match.groupId, session.player.id);
+    if (!isMember) {
+      return NextResponse.json(
+        { error: "Debes unirte al club para inscribirte en este partido" },
+        { status: 403 }
+      );
+    }
   }
 
   // Check deadline

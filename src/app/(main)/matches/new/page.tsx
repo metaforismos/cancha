@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,14 +9,33 @@ import { FORMAT_PLAYER_COUNTS, MATCH_FORMATS } from "@/types";
 import type { MatchFormat } from "@/types";
 import { toast } from "sonner";
 
+interface ClubOption {
+  group: { id: string; name: string };
+  role: string;
+}
+
 export default function NewMatchPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedClubId = searchParams.get("clubId");
+
   const [loading, setLoading] = useState(false);
   const [format, setFormat] = useState<MatchFormat>("7v7");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [locationUrl, setLocationUrl] = useState("");
+  const [clubId, setClubId] = useState(preselectedClubId || "");
+  const [clubs, setClubs] = useState<ClubOption[]>([]);
+
+  useEffect(() => {
+    fetch("/api/groups?my=true")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setClubs(data);
+      })
+      .catch(() => {});
+  }, []);
 
   const maxPlayers = FORMAT_PLAYER_COUNTS[format];
 
@@ -40,6 +59,7 @@ export default function NewMatchPage() {
           format,
           maxPlayers,
           enrollmentDeadline: deadline.toISOString(),
+          groupId: clubId || undefined,
         }),
       });
 
@@ -65,6 +85,25 @@ export default function NewMatchPage() {
       <Card>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Club selector */}
+            {clubs.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Club</label>
+                <select
+                  value={clubId}
+                  onChange={(e) => setClubId(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">Sin club (partido libre)</option>
+                  {clubs.map((c) => (
+                    <option key={c.group.id} value={c.group.id}>
+                      {c.group.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Formato</label>
               <div className="grid grid-cols-4 gap-2">

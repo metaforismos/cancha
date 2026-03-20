@@ -105,6 +105,10 @@ export const playerRatings = pgTable(
 export const groups = pgTable("groups", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  logoUrl: text("logo_url"),
+  city: text("city"),
+  country: text("country"),
+  description: text("description"),
   createdBy: uuid("created_by")
     .notNull()
     .references(() => players.id),

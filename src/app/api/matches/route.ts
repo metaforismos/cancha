@@ -3,17 +3,20 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matches, matchEnrollments } from "@/lib/db/schema";
 import { matchCreateSchema } from "@/lib/validators";
-import { desc, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { ensurePlayerInDefaultGroup } from "@/lib/db/queries";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await getSession();
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await db
+  const { searchParams } = new URL(request.url);
+  const groupId = searchParams.get("groupId");
+
+  let query = db
     .select({
       id: matches.id,
       date: matches.date,
@@ -30,7 +33,13 @@ export async function GET() {
       )`.as("enrolled_count"),
     })
     .from(matches)
-    .orderBy(desc(matches.date));
+    .$dynamic();
+
+  if (groupId) {
+    query = query.where(eq(matches.groupId, groupId));
+  }
+
+  const result = await query.orderBy(desc(matches.date));
 
   return NextResponse.json(result);
 }

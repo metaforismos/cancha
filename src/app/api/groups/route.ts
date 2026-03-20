@@ -2,22 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { groups, groupMembers } from "@/lib/db/schema";
-import { getPlayerGroups } from "@/lib/db/queries";
-import { z } from "zod";
+import { getAllClubs, getPlayerGroups } from "@/lib/db/queries";
+import { clubCreateSchema } from "@/lib/validators";
 
-const createGroupSchema = z.object({
-  name: z.string().min(1).max(100),
-});
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await getSession();
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const playerGroups = await getPlayerGroups(session.player.id);
-  return NextResponse.json(playerGroups);
+  const { searchParams } = new URL(request.url);
+  const my = searchParams.get("my");
+
+  // Return only player's clubs
+  if (my === "true") {
+    const playerGroups = await getPlayerGroups(session.player.id);
+    return NextResponse.json(playerGroups);
+  }
+
+  // Return all clubs with filters
+  const city = searchParams.get("city") || undefined;
+  const country = searchParams.get("country") || undefined;
+  const clubs = await getAllClubs({ city, country });
+  return NextResponse.json(clubs);
 }
 
 export async function POST(request: NextRequest) {
@@ -28,7 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const parsed = createGroupSchema.safeParse(body);
+  const parsed = clubCreateSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -41,6 +49,10 @@ export async function POST(request: NextRequest) {
     .insert(groups)
     .values({
       name: parsed.data.name,
+      city: parsed.data.city,
+      country: parsed.data.country,
+      description: parsed.data.description || null,
+      logoUrl: parsed.data.logoUrl || null,
       createdBy: session.player.id,
     })
     .returning();
