@@ -90,6 +90,7 @@ export async function PUT(request: NextRequest) {
     positions: parsed.data.positions,
     dominantFoot: parsed.data.dominantFoot,
     selfSkills: parsed.data.selfSkills,
+    photoUrl: parsed.data.photoUrl,
   });
 
   const player = await getPlayerByAuthId(session.player.id);

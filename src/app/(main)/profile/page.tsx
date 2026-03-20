@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { POSITIONS, POSITION_LABELS, SKILLS } from "@/types";
 import type { Position, SkillRatings } from "@/types";
 import { toast } from "sonner";
-import { Share2 } from "lucide-react";
+import { Share2, Camera } from "lucide-react";
 import { INVITE_CLUB, INVITE_REF, getCookie, clearCookie } from "@/lib/invite";
 
 const footLabels: Record<string, string> = {
@@ -43,6 +44,8 @@ export default function ProfilePage() {
   const [skills, setSkills] = useState<SkillRatings>(
     Object.fromEntries(SKILLS.map((s) => [s, 5])) as SkillRatings
   );
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [avgSkills, setAvgSkills] = useState<{
     skills: Record<string, number>;
@@ -66,6 +69,9 @@ export default function ProfilePage() {
           if (data.player.selfSkills && Object.keys(data.player.selfSkills).length > 0) {
             setSkills(data.player.selfSkills);
           }
+          if (data.player.photoUrl) {
+            setPhotoUrl(data.player.photoUrl);
+          }
         }
         if (data.avgSkills) {
           setAvgSkills(data.avgSkills);
@@ -81,6 +87,41 @@ export default function ProfilePage() {
 
   function setSkill(skill: string, value: number) {
     setSkills((prev) => ({ ...prev, [skill]: value }));
+  }
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 500 * 1024) {
+      toast.error("La imagen debe pesar menos de 500KB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Create a canvas to resize the image
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSize = 200;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxSize) { h = (h * maxSize) / w; w = maxSize; }
+        } else {
+          if (h > maxSize) { w = (w * maxSize) / h; h = maxSize; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        setPhotoUrl(dataUrl);
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleSave() {
@@ -102,6 +143,7 @@ export default function ProfilePage() {
           positions,
           dominantFoot,
           selfSkills: skills,
+          photoUrl,
         }),
       });
 
@@ -132,39 +174,61 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-4">
-      {avgSkills && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">
-                Valoración de la comunidad ({avgSkills.ratingCount} valoraciones)
-              </span>
-              <span className="text-xl font-bold">{avgSkills.overall}/10</span>
-            </div>
-            {avgSkills.ratingCount < 3 && (
-              <p className="text-xs text-yellow-500">
-                Necesitas {3 - avgSkills.ratingCount} valoraciones más para unirte a partidos. ¡Pide a tus compañeros que te valoren!
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
+    <div className="space-y-5">
+      {/* Photo + Rating header */}
       <Card>
-        <CardContent className="pt-6 space-y-8">
-          <div>
-            <label className="text-sm font-medium mb-3 block">Celular</label>
-            <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted text-muted-foreground text-sm">
-              {phone.startsWith("52") && "🇲🇽 +52 "}
-              {phone.startsWith("56") && "🇨🇱 +56 "}
-              {phone.startsWith("54") && "🇦🇷 +54 "}
-              {phone.startsWith("52") ? phone.slice(2) : phone.startsWith("56") ? phone.slice(2) : phone.startsWith("54") ? phone.slice(2) : phone}
+        <CardContent className="pt-6 pb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <Avatar className="h-20 w-20 shrink-0">
+                {photoUrl ? (
+                  <AvatarImage src={photoUrl} alt={name} />
+                ) : null}
+                <AvatarFallback className="bg-green-600 text-white text-2xl">
+                  {name ? name.slice(0, 2).toUpperCase() : "?"}
+                </AvatarFallback>
+              </Avatar>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-green-600 flex items-center justify-center text-white shadow-md hover:bg-green-700 transition-colors"
+              >
+                <Camera className="h-4 w-4" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">{phone.startsWith("52") ? "🇲🇽 +52 " : phone.startsWith("56") ? "🇨🇱 +56 " : phone.startsWith("54") ? "🇦🇷 +54 " : ""}{phone.startsWith("52") ? phone.slice(2) : phone.startsWith("56") ? phone.slice(2) : phone.startsWith("54") ? phone.slice(2) : phone}</p>
+              {avgSkills && (
+                <div className="mt-1">
+                  <p className="text-lg font-bold">
+                    {avgSkills.overall}/10{" "}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      ({avgSkills.ratingCount} valoraciones)
+                    </span>
+                  </p>
+                  {avgSkills.ratingCount < 3 && (
+                    <p className="text-xs text-yellow-500 mt-0.5">
+                      Necesitas {3 - avgSkills.ratingCount} más para unirte a partidos
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+        </CardContent>
+      </Card>
 
+      <Card>
+        <CardContent className="pt-6 space-y-6">
           <div>
-            <label className="text-sm font-medium mb-3 block">Nombre</label>
+            <label className="text-sm font-medium mb-2 block">Nombre</label>
             <Input
               placeholder="Tu nombre"
               value={name}
@@ -174,7 +238,7 @@ export default function ProfilePage() {
 
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="text-sm font-medium mb-3 block">Alias</label>
+              <label className="text-sm font-medium mb-2 block">Alias</label>
               <Input
                 placeholder="Tu apodo"
                 value={alias}
@@ -182,7 +246,7 @@ export default function ProfilePage() {
               />
             </div>
             <div className="w-24">
-              <label className="text-sm font-medium mb-3 block">Número</label>
+              <label className="text-sm font-medium mb-2 block">Número</label>
               <Input
                 type="number"
                 placeholder="#"
@@ -197,7 +261,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-3 block">Fecha de nacimiento</label>
+            <label className="text-sm font-medium mb-2 block">Fecha de nacimiento</label>
             <Input
               type="date"
               value={birthDate}
@@ -206,7 +270,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-3 block">Posiciones</label>
+            <label className="text-sm font-medium mb-2 block">Posiciones</label>
             <div className="flex flex-wrap gap-2">
               {POSITIONS.map((pos) => (
                 <Badge
@@ -226,7 +290,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-3 block">Pie dominante</label>
+            <label className="text-sm font-medium mb-2 block">Pie dominante</label>
             <div className="grid grid-cols-3 gap-2">
               {(["left", "right", "both"] as const).map((foot) => (
                 <Button
@@ -246,7 +310,7 @@ export default function ProfilePage() {
 
       <Card>
         <CardContent className="pt-6 space-y-4">
-          <label className="text-sm font-medium mb-3 block">Habilidades</label>
+          <label className="text-sm font-medium mb-2 block">Habilidades</label>
           {SKILLS.map((skill) => (
             <div key={skill} className="space-y-1">
               <div className="flex items-center justify-between">

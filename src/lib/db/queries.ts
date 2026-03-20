@@ -44,6 +44,7 @@ export async function upsertPlayer(
     positions: string[];
     dominantFoot: "left" | "right" | "both";
     selfSkills: Record<string, number>;
+    photoUrl?: string | null;
   }
 ) {
   const existing = await getPlayerByAuthId(id);
@@ -59,6 +60,7 @@ export async function upsertPlayer(
         positions: data.positions,
         dominantFoot: data.dominantFoot,
         selfSkills: data.selfSkills,
+        ...(data.photoUrl !== undefined ? { photoUrl: data.photoUrl || null } : {}),
       })
       .where(eq(players.id, id));
   } else {
@@ -72,6 +74,7 @@ export async function upsertPlayer(
       positions: data.positions,
       dominantFoot: data.dominantFoot,
       selfSkills: data.selfSkills,
+      photoUrl: data.photoUrl || null,
     });
   }
 }

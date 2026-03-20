@@ -104,12 +104,12 @@ export default function NewMatchPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <PageHeader title="Crear partido" />
 
       <Card>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="pt-6 pb-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo de partido</label>
               <div className="grid grid-cols-3 gap-2">

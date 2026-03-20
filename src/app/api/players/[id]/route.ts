@@ -94,6 +94,7 @@ export async function PATCH(
     positions: parsed.data.positions,
     dominantFoot: parsed.data.dominantFoot,
     selfSkills: parsed.data.selfSkills,
+    photoUrl: parsed.data.photoUrl,
   });
 
   const updated = await db

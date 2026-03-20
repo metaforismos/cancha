@@ -131,7 +131,7 @@ export default function ClubDetailPage() {
   };
 
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-5 pb-20">
       <PageHeader title={group.name} />
       {/* Club header */}
       <Card>
@@ -160,19 +160,18 @@ export default function ClubDetailPage() {
             </div>
           </div>
 
-          <div className="flex gap-2 mt-4">
-            {isMember ? (
-              <>
-                {isAdmin && (
-                  <Link href={`/clubs/${id}/edit`} className="flex-1">
-                    <Button variant="outline" className="w-full">
+          {isMember ? (
+            <div className="mt-4 pt-4 border-t border-border space-y-2">
+              {isAdmin && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Link href={`/clubs/${id}/edit`}>
+                    <Button variant="outline" size="sm" className="w-full">
                       Editar
                     </Button>
                   </Link>
-                )}
-                {isAdmin && (
                   <Button
                     variant="outline"
+                    size="sm"
                     className="flex items-center gap-1"
                     onClick={async () => {
                       const url = `${window.location.origin}/invite/club/${id}`;
@@ -193,17 +192,20 @@ export default function ClubDetailPage() {
                     <UserPlus className="h-4 w-4" />
                     Invitar
                   </Button>
-                )}
-                <Button
-                  variant="outline"
-                  className="text-red-500 hover:text-red-400"
-                  onClick={handleLeave}
-                  disabled={actionLoading}
-                >
-                  Salir del club
-                </Button>
-              </>
-            ) : (
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                onClick={handleLeave}
+                disabled={actionLoading}
+              >
+                Salir del club
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-4 pt-4 border-t border-border">
               <Button
                 className="w-full bg-green-600 hover:bg-green-700"
                 onClick={handleJoin}
@@ -211,8 +213,8 @@ export default function ClubDetailPage() {
               >
                 {actionLoading ? "Uniéndome..." : "Unirme al club"}
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
         </CardContent>
       </Card>

@@ -20,6 +20,7 @@ export const playerProfileSchema = z.object({
     .min(1, "Select at least one position"),
   dominantFoot: z.enum(["left", "right", "both"]),
   selfSkills: skillsSchema,
+  photoUrl: z.string().max(200000).optional().nullable(),
 });
 
 export const ratingSchema = z.object({
