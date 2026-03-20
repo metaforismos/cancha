@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FloatingAction } from "@/components/floating-action";
 import { toast } from "sonner";
 
 interface ClubDetail {
@@ -122,7 +123,7 @@ export default function ClubDetailPage() {
   const { group, members, isMember, isAdmin } = club;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-20">
       {/* Club header */}
       <Card>
         <CardContent className="pt-6">
@@ -180,15 +181,12 @@ export default function ClubDetailPage() {
             )}
           </div>
 
-          {isMember && (
-            <Link href={`/matches/new?clubId=${id}`} className="block mt-2">
-              <Button className="w-full bg-green-600 hover:bg-green-700">
-                + Crear partido
-              </Button>
-            </Link>
-          )}
         </CardContent>
       </Card>
+
+      {isMember && (
+        <FloatingAction href={`/matches/new?clubId=${id}`} label="+ Crear partido" />
+      )}
 
       {/* Members */}
       <Card>

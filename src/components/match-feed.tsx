@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { FloatingAction } from "@/components/floating-action";
 
 interface MatchData {
   id: string;
@@ -45,12 +45,8 @@ export function MatchFeed() {
   }
 
   return (
-    <div className="space-y-4">
-      <Link href="/matches/new">
-        <Button className="w-full bg-green-600 hover:bg-green-700 h-12 text-base">
-          + Crear partido
-        </Button>
-      </Link>
+    <div className="space-y-4 pb-20">
+      <FloatingAction href="/matches/new" label="+ Crear partido" />
       {matches.length === 0 ? (
         <div className="text-center text-muted-foreground py-8">
           <div className="text-4xl mb-3">&#9917;</div>

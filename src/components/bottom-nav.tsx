@@ -92,9 +92,7 @@ const NAV_ITEMS = [
   },
 ];
 
-const BASE_MENU_ITEMS = [
-  { label: "Configuración", href: "/settings" },
-];
+const BASE_MENU_ITEMS: { label: string; href: string }[] = [];
 
 const ADMIN_MENU_ITEMS = [
   { label: "Crear jugador", href: "/admin/players/new" },

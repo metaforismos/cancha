@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { FloatingAction } from "@/components/floating-action";
 
 interface ClubData {
   group: {
@@ -56,14 +56,10 @@ export default function ClubsPage() {
   }, [clubs]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-20">
       <h1 className="text-2xl font-bold">Clubes</h1>
 
-      <Link href="/clubs/new" className="block mb-2">
-        <Button className="w-full bg-green-600 hover:bg-green-700 h-12 text-base">
-          + Crear club
-        </Button>
-      </Link>
+      <FloatingAction href="/clubs/new" label="+ Crear club" />
 
       {/* Country filter */}
       {countries.length > 0 && (
