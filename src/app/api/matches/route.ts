@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matches, matchEnrollments } from "@/lib/db/schema";
 import { matchCreateSchema } from "@/lib/validators";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql, and, count } from "drizzle-orm";
 import { ensurePlayerInDefaultGroup } from "@/lib/db/queries";
 
 export async function GET(request: NextRequest) {
@@ -15,8 +15,18 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const groupId = searchParams.get("groupId");
+  const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
+  const offset = parseInt(searchParams.get("offset") || "0");
 
-  let query = db
+  // Use LEFT JOIN + GROUP BY instead of correlated subquery
+  const conditions = [
+    sql`(${matchEnrollments.status} = 'enrolled' OR ${matchEnrollments.status} IS NULL)`,
+  ];
+  if (groupId) {
+    conditions.push(eq(matches.groupId, groupId));
+  }
+
+  const result = await db
     .select({
       id: matches.id,
       date: matches.date,
@@ -27,21 +37,24 @@ export async function GET(request: NextRequest) {
       category: matches.category,
       maxPlayers: matches.maxPlayers,
       status: matches.status,
+      teamAName: matches.teamAName,
+      teamBName: matches.teamBName,
       enrollmentDeadline: matches.enrollmentDeadline,
-      enrolledCount: sql<number>`(
-        SELECT count(*) FROM match_enrollments
-        WHERE match_enrollments.match_id = ${matches.id}
-        AND match_enrollments.status = 'enrolled'
-      )`.as("enrolled_count"),
+      enrolledCount: sql<number>`count(${matchEnrollments.playerId})`.as("enrolled_count"),
     })
     .from(matches)
-    .$dynamic();
-
-  if (groupId) {
-    query = query.where(eq(matches.groupId, groupId));
-  }
-
-  const result = await query.orderBy(desc(matches.date));
+    .leftJoin(
+      matchEnrollments,
+      and(
+        eq(matchEnrollments.matchId, matches.id),
+        eq(matchEnrollments.status, "enrolled")
+      )
+    )
+    .where(groupId ? eq(matches.groupId, groupId) : undefined)
+    .groupBy(matches.id)
+    .orderBy(desc(matches.date))
+    .limit(limit)
+    .offset(offset);
 
   return NextResponse.json(result);
 }
@@ -76,6 +89,8 @@ export async function POST(request: NextRequest) {
       locationUrl: parsed.data.locationUrl || null,
       format: parsed.data.format,
       category: parsed.data.category || "friendly",
+      teamAName: parsed.data.teamAName || null,
+      teamBName: parsed.data.teamBName || null,
       maxPlayers: parsed.data.maxPlayers ?? 999,
       enrollmentDeadline: new Date(parsed.data.enrollmentDeadline),
       createdBy: session.player.id,

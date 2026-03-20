@@ -30,6 +30,8 @@ export default function NewMatchPage() {
   const [locationUrl, setLocationUrl] = useState("");
   const [clubId, setClubId] = useState(preselectedClubId || "");
   const [clubs, setClubs] = useState<ClubOption[]>([]);
+  const [teamAName, setTeamAName] = useState("");
+  const [teamBName, setTeamBName] = useState("");
 
   useEffect(() => {
     fetch("/api/groups?my=true")
@@ -65,6 +67,8 @@ export default function NewMatchPage() {
           locationUrl: locationUrl || undefined,
           format,
           category,
+          teamAName: teamAName || undefined,
+          teamBName: teamBName || undefined,
           enrollmentDeadline: deadline.toISOString(),
           groupId: clubId || undefined,
         }),
@@ -92,24 +96,23 @@ export default function NewMatchPage() {
       <Card>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Club selector */}
-            {clubs.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Club</label>
-                <select
-                  value={clubId}
-                  onChange={(e) => setClubId(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">Sin club (partido libre)</option>
-                  {clubs.map((c) => (
-                    <option key={c.group.id} value={c.group.id}>
-                      {c.group.name}
-                    </option>
-                  ))}
-                </select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo de partido</label>
+              <div className="grid grid-cols-3 gap-2">
+                {MATCH_CATEGORIES.map((cat) => (
+                  <Button
+                    key={cat}
+                    type="button"
+                    variant={category === cat ? "default" : "outline"}
+                    className={category === cat ? "bg-green-600" : ""}
+                    onClick={() => setCategory(cat)}
+                    size="sm"
+                  >
+                    {CATEGORY_LABELS[cat]}
+                  </Button>
+                ))}
               </div>
-            )}
+            </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Formato</label>
@@ -131,22 +134,48 @@ export default function NewMatchPage() {
               </p>
             </div>
 
+            {/* Team names */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tipo de partido</label>
-              <div className="grid grid-cols-2 gap-2">
-                {MATCH_CATEGORIES.map((cat) => (
-                  <Button
-                    key={cat}
-                    type="button"
-                    variant={category === cat ? "default" : "outline"}
-                    className={category === cat ? "bg-green-600" : ""}
-                    onClick={() => setCategory(cat)}
-                  >
-                    {CATEGORY_LABELS[cat]}
-                  </Button>
-                ))}
+              <label className="text-sm font-medium">
+                Nombres de equipos (opcional)
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  placeholder='Ej: "Rojos"'
+                  value={teamAName}
+                  onChange={(e) => setTeamAName(e.target.value)}
+                  maxLength={30}
+                />
+                <Input
+                  placeholder='Ej: "Blancos"'
+                  value={teamBName}
+                  onChange={(e) => setTeamBName(e.target.value)}
+                  maxLength={30}
+                />
               </div>
+              <p className="text-xs text-muted-foreground">
+                Elige nombres para identificar a los equipos
+              </p>
             </div>
+
+            {/* Club selector */}
+            {clubs.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Organizado por</label>
+                <select
+                  value={clubId}
+                  onChange={(e) => setClubId(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">Partido libre (sin club)</option>
+                  {clubs.map((c) => (
+                    <option key={c.group.id} value={c.group.id}>
+                      {c.group.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Fecha</label>

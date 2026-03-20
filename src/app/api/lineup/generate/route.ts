@@ -9,7 +9,7 @@ import {
   lineups,
   groupMembers,
 } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { generateLineup } from "@/lib/claude/lineup";
 import type { PlayerForLineup } from "@/lib/claude/types";
 import type { SkillRatings } from "@/types";
@@ -88,46 +88,57 @@ export async function POST(request: NextRequest) {
       )
     );
 
-  // Get ratings for each player
-  const playerData: PlayerForLineup[] = await Promise.all(
-    enrolledPlayers.map(async ({ player }) => {
-      const ratings = await db
-        .select({ skills: playerRatings.skills })
+  // Batch-fetch all ratings for enrolled players in a single query
+  const playerIds = enrolledPlayers.map(({ player }) => player.id);
+  const allRatings = playerIds.length > 0
+    ? await db
+        .select({ ratedId: playerRatings.ratedId, skills: playerRatings.skills })
         .from(playerRatings)
-        .where(eq(playerRatings.ratedId, player.id));
+        .where(inArray(playerRatings.ratedId, playerIds))
+    : [];
 
-      let avgSkills: Record<string, number> = player.selfSkills as Record<
-        string,
-        number
-      >;
+  // Group ratings by player
+  const ratingsByPlayer = new Map<string, typeof allRatings>();
+  for (const r of allRatings) {
+    const existing = ratingsByPlayer.get(r.ratedId) ?? [];
+    existing.push(r);
+    ratingsByPlayer.set(r.ratedId, existing);
+  }
 
-      if (ratings.length > 0) {
-        avgSkills = {};
-        for (const skill of SKILLS) {
-          const values = ratings
-            .map((r) => (r.skills as Record<string, number>)[skill])
-            .filter((v) => v != null);
-          avgSkills[skill] =
-            values.length > 0
-              ? values.reduce((a, b) => a + b, 0) / values.length
-              : ((player.selfSkills as Record<string, number>)[skill] ?? 3);
-        }
+  const playerData: PlayerForLineup[] = enrolledPlayers.map(({ player }) => {
+    const ratings = ratingsByPlayer.get(player.id) ?? [];
+
+    let avgSkills: Record<string, number> = player.selfSkills as Record<
+      string,
+      number
+    >;
+
+    if (ratings.length > 0) {
+      avgSkills = {};
+      for (const skill of SKILLS) {
+        const values = ratings
+          .map((r) => (r.skills as Record<string, number>)[skill])
+          .filter((v) => v != null);
+        avgSkills[skill] =
+          values.length > 0
+            ? values.reduce((a, b) => a + b, 0) / values.length
+            : ((player.selfSkills as Record<string, number>)[skill] ?? 3);
       }
+    }
 
-      const avgRating =
-        Object.values(avgSkills).reduce((a, b) => a + b, 0) /
-        Object.values(avgSkills).length;
+    const avgRating =
+      Object.values(avgSkills).reduce((a, b) => a + b, 0) /
+      Object.values(avgSkills).length;
 
-      return {
-        id: player.id,
-        name: player.name,
-        positions: (player.positions as string[]) || [],
-        dominantFoot: player.dominantFoot,
-        skills: avgSkills,
-        avgRating: Math.round(avgRating * 10) / 10,
-      };
-    })
-  );
+    return {
+      id: player.id,
+      name: player.name,
+      positions: (player.positions as string[]) || [],
+      dominantFoot: player.dominantFoot,
+      skills: avgSkills,
+      avgRating: Math.round(avgRating * 10) / 10,
+    };
+  });
 
   // Generate lineup via Claude
   const lineupMode = mode === "single" ? "single" : "both";

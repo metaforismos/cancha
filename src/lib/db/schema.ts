@@ -30,6 +30,7 @@ export const matchFormatEnum = pgEnum("match_format", [
 export const matchCategoryEnum = pgEnum("match_category", [
   "friendly",
   "league",
+  "training",
 ]);
 
 export const matchStatusEnum = pgEnum("match_status", [
@@ -76,16 +77,23 @@ export const players = pgTable("players", {
     .defaultNow(),
 });
 
-export const sessions = pgTable("sessions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  playerId: uuid("player_id")
-    .notNull()
-    .references(() => players.id),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    playerId: uuid("player_id")
+      .notNull()
+      .references(() => players.id),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_sessions_player_id").on(table.playerId),
+    index("idx_sessions_expires_at").on(table.expiresAt),
+  ]
+);
 
 export const playerRatings = pgTable(
   "player_ratings",
@@ -142,29 +150,39 @@ export const groupMembers = pgTable(
   ]
 );
 
-export const matches = pgTable("matches", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  groupId: uuid("group_id")
-    .notNull()
-    .references(() => groups.id),
-  date: timestamp("date", { withTimezone: true }).notNull(),
-  endTime: timestamp("end_time", { withTimezone: true }),
-  location: text("location").notNull(),
-  locationUrl: text("location_url"),
-  format: matchFormatEnum("format").notNull(),
-  category: matchCategoryEnum("category").notNull().default("friendly"),
-  maxPlayers: integer("max_players").notNull(),
-  enrollmentDeadline: timestamp("enrollment_deadline", {
-    withTimezone: true,
-  }).notNull(),
-  status: matchStatusEnum("status").notNull().default("open"),
-  createdBy: uuid("created_by")
-    .notNull()
-    .references(() => players.id),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const matches = pgTable(
+  "matches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id),
+    date: timestamp("date", { withTimezone: true }).notNull(),
+    endTime: timestamp("end_time", { withTimezone: true }),
+    location: text("location").notNull(),
+    locationUrl: text("location_url"),
+    format: matchFormatEnum("format").notNull(),
+    category: matchCategoryEnum("category").notNull().default("friendly"),
+    maxPlayers: integer("max_players").notNull(),
+    enrollmentDeadline: timestamp("enrollment_deadline", {
+      withTimezone: true,
+    }).notNull(),
+    teamAName: text("team_a_name"),
+    teamBName: text("team_b_name"),
+    status: matchStatusEnum("status").notNull().default("open"),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => players.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_matches_group_id").on(table.groupId),
+    index("idx_matches_date").on(table.date),
+    index("idx_matches_status").on(table.status),
+  ]
+);
 
 export const matchEnrollments = pgTable(
   "match_enrollments",

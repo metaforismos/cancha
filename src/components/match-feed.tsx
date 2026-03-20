@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { FloatingAction } from "@/components/floating-action";
 import { MatchCardSkeleton } from "@/components/skeleton-cards";
 import { formatMatchDateWithRange } from "@/lib/format";
-import { CircleDot, Lock, Play, CheckCircle, UserPlus, Trophy } from "lucide-react";
+import { CircleDot, Lock, Play, CheckCircle, UserPlus, Trophy, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -28,6 +28,8 @@ interface MatchData {
   status: string;
   maxPlayers?: number | null;
   enrolledCount?: number;
+  teamAName?: string | null;
+  teamBName?: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -127,23 +129,33 @@ function MatchCard({ match }: { match: MatchData }) {
     open: "bg-green-600",
     closed: "bg-yellow-600",
     in_progress: "bg-blue-600",
-    completed: "bg-muted",
+    completed: "bg-zinc-600",
   };
 
   const enrolled = match.enrolledCount ?? 0;
   const maxPlayers = match.maxPlayers && match.maxPlayers < 999 ? match.maxPlayers : null;
   const isLeague = match.category === "league";
+  const isTraining = match.category === "training";
+  const hasTeamNames = match.teamAName && match.teamBName;
 
   return (
     <Card className="mt-3">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CardTitle className="text-lg">{match.format}</CardTitle>
+            <CardTitle className="text-lg">
+              {hasTeamNames ? `${match.teamAName} vs ${match.teamBName}` : match.format}
+            </CardTitle>
             {isLeague && (
               <Badge variant="secondary" className="text-xs flex items-center gap-1">
                 <Trophy className="h-3 w-3" />
                 Liga
+              </Badge>
+            )}
+            {isTraining && (
+              <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                <Dumbbell className="h-3 w-3" />
+                Entreno
               </Badge>
             )}
           </div>
@@ -155,6 +167,7 @@ function MatchCard({ match }: { match: MatchData }) {
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-muted-foreground">
         <div className="space-y-1">
+          {hasTeamNames && <p>{match.format}</p>}
           <p>{formatMatchDateWithRange(match.date, match.endTime)}</p>
           <p>{match.location}</p>
           <p>

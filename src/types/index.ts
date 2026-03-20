@@ -48,12 +48,13 @@ export const FORMAT_PLAYER_COUNTS: Record<MatchFormat, number> = {
   "11v11": 22,
 };
 
-export const MATCH_CATEGORIES = ["friendly", "league"] as const;
+export const MATCH_CATEGORIES = ["friendly", "league", "training"] as const;
 export type MatchCategory = (typeof MATCH_CATEGORIES)[number];
 
 export const CATEGORY_LABELS: Record<MatchCategory, string> = {
   friendly: "Partido amistoso",
   league: "Partido de liga",
+  training: "Entrenamiento",
 };
 
 export const FORMAT_FILTER_LABELS: Record<string, string> = {

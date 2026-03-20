@@ -29,6 +29,8 @@ export default function EditMatchPage() {
   const [location, setLocation] = useState("");
   const [locationUrl, setLocationUrl] = useState("");
   const [category, setCategory] = useState<MatchCategory>("friendly");
+  const [teamAName, setTeamAName] = useState("");
+  const [teamBName, setTeamBName] = useState("");
   const [status, setStatus] = useState("open");
 
   useEffect(() => {
@@ -51,6 +53,8 @@ export default function EditMatchPage() {
         setLocation(m.location);
         setLocationUrl(m.locationUrl || "");
         setCategory((m.category as MatchCategory) || "friendly");
+        setTeamAName(m.teamAName || "");
+        setTeamBName(m.teamBName || "");
         setStatus(m.status);
       })
       .catch(() => router.replace(`/matches/${id}`))
@@ -81,6 +85,8 @@ export default function EditMatchPage() {
           locationUrl: locationUrl || undefined,
           format,
           category,
+          teamAName: teamAName || "",
+          teamBName: teamBName || "",
           status,
           enrollmentDeadline: deadline.toISOString(),
         }),
@@ -116,18 +122,21 @@ export default function EditMatchPage() {
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Estado</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
+              <label className="text-sm font-medium">Tipo de partido</label>
+              <div className="grid grid-cols-3 gap-2">
+                {MATCH_CATEGORIES.map((cat) => (
+                  <Button
+                    key={cat}
+                    type="button"
+                    variant={category === cat ? "default" : "outline"}
+                    className={category === cat ? "bg-green-600" : ""}
+                    onClick={() => setCategory(cat)}
+                    size="sm"
+                  >
+                    {CATEGORY_LABELS[cat]}
+                  </Button>
                 ))}
-              </select>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -147,21 +156,40 @@ export default function EditMatchPage() {
               </div>
             </div>
 
+            {/* Team names */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tipo de partido</label>
-              <div className="grid grid-cols-2 gap-2">
-                {MATCH_CATEGORIES.map((cat) => (
-                  <Button
-                    key={cat}
-                    type="button"
-                    variant={category === cat ? "default" : "outline"}
-                    className={category === cat ? "bg-green-600" : ""}
-                    onClick={() => setCategory(cat)}
-                  >
-                    {CATEGORY_LABELS[cat]}
-                  </Button>
-                ))}
+              <label className="text-sm font-medium">
+                Nombres de equipos (opcional)
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  placeholder='Ej: "Rojos"'
+                  value={teamAName}
+                  onChange={(e) => setTeamAName(e.target.value)}
+                  maxLength={30}
+                />
+                <Input
+                  placeholder='Ej: "Blancos"'
+                  value={teamBName}
+                  onChange={(e) => setTeamBName(e.target.value)}
+                  maxLength={30}
+                />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Estado</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">

@@ -93,6 +93,8 @@ export async function PATCH(
   if (body.maxPlayers !== undefined) updateData.maxPlayers = body.maxPlayers;
   if (body.enrollmentDeadline !== undefined) updateData.enrollmentDeadline = new Date(body.enrollmentDeadline);
   if (body.status !== undefined) updateData.status = body.status;
+  if (body.teamAName !== undefined) updateData.teamAName = body.teamAName || null;
+  if (body.teamBName !== undefined) updateData.teamBName = body.teamBName || null;
 
   if (Object.keys(updateData).length === 0) {
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });

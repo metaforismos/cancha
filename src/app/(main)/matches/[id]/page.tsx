@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { DetailSkeleton } from "@/components/skeleton-cards";
 import { formatDateWithRange, formatDeadline } from "@/lib/format";
-import { Share2, CircleDot, Lock, Play, CheckCircle, BarChart3, Trophy } from "lucide-react";
+import { Share2, CircleDot, Lock, Play, CheckCircle, BarChart3, Trophy, Dumbbell } from "lucide-react";
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   open: <CircleDot className="h-3 w-3" />,
@@ -30,6 +30,8 @@ interface MatchDetail {
     locationUrl: string | null;
     format: string;
     category?: string;
+    teamAName?: string | null;
+    teamBName?: string | null;
     status: string;
     maxPlayers: number | null;
     enrollmentDeadline: string;
@@ -115,7 +117,7 @@ export default function MatchDetailPage() {
     open: "bg-green-600",
     closed: "bg-yellow-600",
     in_progress: "bg-blue-600",
-    completed: "bg-muted",
+    completed: "bg-zinc-600",
   };
 
   const statusLabels: Record<string, string> = {
@@ -157,11 +159,21 @@ export default function MatchDetailPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CardTitle>{match.format}</CardTitle>
+              <CardTitle>
+                {match.teamAName && match.teamBName
+                  ? `${match.teamAName} vs ${match.teamBName}`
+                  : match.format}
+              </CardTitle>
               {match.category === "league" && (
                 <Badge variant="secondary" className="text-xs flex items-center gap-1">
                   <Trophy className="h-3 w-3" />
                   Liga
+                </Badge>
+              )}
+              {match.category === "training" && (
+                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                  <Dumbbell className="h-3 w-3" />
+                  Entreno
                 </Badge>
               )}
             </div>
@@ -173,6 +185,7 @@ export default function MatchDetailPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2 text-sm text-muted-foreground">
+            {match.teamAName && match.teamBName && <p>{match.format}</p>}
             <p>{formatDateWithRange(match.date, match.endTime)}</p>
             <p>{match.location}</p>
             {match.locationUrl && (
