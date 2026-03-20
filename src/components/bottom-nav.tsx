@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const NAV_ITEMS = [
   {
@@ -106,12 +107,14 @@ export function BottomNav() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [playerId, setPlayerId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/players/me")
       .then((r) => r.json())
       .then((data) => {
         if (data.player?.isAdmin) setIsAdmin(true);
+        if (data.player?.id) setPlayerId(data.player.id);
       })
       .catch(() => {});
   }, []);
@@ -177,7 +180,36 @@ export function BottomNav() {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-1">
+          {playerId && (
+            <button
+              onClick={async () => {
+                const url = `${window.location.origin}/invite/user/${playerId}`;
+                if (navigator.share) {
+                  try {
+                    await navigator.share({
+                      title: "Cancha",
+                      text: "¡Únete a Cancha y juega fútbol conmigo!",
+                      url,
+                    });
+                  } catch {}
+                } else {
+                  await navigator.clipboard.writeText(url);
+                  toast.success("¡Link copiado!");
+                }
+                setMenuOpen(false);
+              }}
+              className="flex w-full items-center gap-3 text-left px-4 py-3 rounded-lg text-sm font-medium text-green-500 hover:bg-green-500/10 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" x2="19" y1="8" y2="14" />
+                <line x1="22" x2="16" y1="11" y2="11" />
+              </svg>
+              Invitar amigos
+            </button>
+          )}
           <button
             onClick={async () => {
               setMenuOpen(false);

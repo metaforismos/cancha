@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { POSITIONS, POSITION_LABELS, SKILLS } from "@/types";
 import type { Position, SkillRatings } from "@/types";
 import { toast } from "sonner";
-import { Share2, Camera } from "lucide-react";
+import { Camera } from "lucide-react";
 import { INVITE_CLUB, INVITE_REF, getCookie, clearCookie } from "@/lib/invite";
 
 const footLabels: Record<string, string> = {
@@ -338,31 +338,6 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Share referral link */}
-      {playerId && (
-        <Button
-          variant="outline"
-          className="w-full flex items-center gap-2"
-          onClick={async () => {
-            const url = `${window.location.origin}/invite/user/${playerId}`;
-            if (navigator.share) {
-              try {
-                await navigator.share({
-                  title: "Cancha",
-                  text: "¡Únete a Cancha y juega fútbol conmigo!",
-                  url,
-                });
-              } catch {}
-            } else {
-              await navigator.clipboard.writeText(url);
-              toast.success("¡Link copiado!");
-            }
-          }}
-        >
-          <Share2 className="h-4 w-4" />
-          Invitar amigos a Cancha
-        </Button>
-      )}
     </div>
   );
 }
