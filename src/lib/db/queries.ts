@@ -278,7 +278,12 @@ export async function getPlayerGroups(playerId: string) {
     .select({ group: groups, role: groupMembers.role })
     .from(groupMembers)
     .innerJoin(groups, eq(groupMembers.groupId, groups.id))
-    .where(eq(groupMembers.playerId, playerId));
+    .where(
+      and(
+        eq(groupMembers.playerId, playerId),
+        ne(groups.name, DEFAULT_GROUP_NAME)
+      )
+    );
 }
 
 export async function getGroupMembers(groupId: string) {
