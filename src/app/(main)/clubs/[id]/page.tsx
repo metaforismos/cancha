@@ -38,6 +38,8 @@ interface MatchData {
   endTime?: string | null;
   location: string;
   format: string;
+  teamAName?: string | null;
+  teamBName?: string | null;
   status: string;
   enrolledCount?: number;
 }
@@ -289,7 +291,10 @@ export default function ClubDetailPage() {
                 <Link key={match.id} href={`/matches/${match.id}`}>
                   <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
                     <div>
-                      <p className="font-medium text-sm">{match.format}</p>
+                      <p className="font-medium text-sm">
+                        {match.teamAName || "Equipo A"} vs {match.teamBName || "Equipo B"}
+                        <span className="text-xs text-muted-foreground ml-1.5">{match.format}</span>
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {formatMatchDateWithRange(match.date, match.endTime)}
                       </p>
