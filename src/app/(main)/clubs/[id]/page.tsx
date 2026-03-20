@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { DetailSkeleton } from "@/components/skeleton-cards";
 import { formatMatchDate } from "@/lib/format";
-import { CircleDot, Lock, Play, CheckCircle } from "lucide-react";
+import { CircleDot, Lock, Play, CheckCircle, UserPlus } from "lucide-react";
 
 interface ClubDetail {
   group: {
@@ -168,6 +168,30 @@ export default function ClubDetailPage() {
                       Editar
                     </Button>
                   </Link>
+                )}
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={async () => {
+                      const url = `${window.location.origin}/invite/club/${id}`;
+                      if (navigator.share) {
+                        try {
+                          await navigator.share({
+                            title: `Únete a ${group.name}`,
+                            text: `¡Únete a ${group.name} en Cancha!`,
+                            url,
+                          });
+                        } catch {}
+                      } else {
+                        await navigator.clipboard.writeText(url);
+                        toast.success("¡Link de invitación copiado!");
+                      }
+                    }}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Invitar
+                  </Button>
                 )}
                 <Button
                   variant="outline"

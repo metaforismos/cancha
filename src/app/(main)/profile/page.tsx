@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { POSITIONS, POSITION_LABELS, SKILLS } from "@/types";
 import type { Position, SkillRatings } from "@/types";
 import { toast } from "sonner";
+import { Share2 } from "lucide-react";
+import { INVITE_CLUB, INVITE_REF, getCookie, clearCookie } from "@/lib/invite";
 
 const footLabels: Record<string, string> = {
   left: "Izquierdo",
@@ -26,6 +29,8 @@ const SKILL_LABELS: Record<string, string> = {
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const [playerId, setPlayerId] = useState<string | null>(null);
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [alias, setAlias] = useState("");
@@ -50,6 +55,7 @@ export default function ProfilePage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.player) {
+          setPlayerId(data.player.id);
           setPhone(data.player.phone || "");
           setName(data.player.name);
           setAlias(data.player.alias || "");
@@ -105,6 +111,19 @@ export default function ProfilePage() {
       }
 
       toast.success("¡Perfil guardado!");
+
+      // Check for pending club invite
+      const clubId = getCookie(INVITE_CLUB);
+      if (clubId) {
+        try {
+          await fetch(`/api/groups/${clubId}/members`, { method: "POST" });
+          toast.success("¡Te uniste al club!");
+        } catch {}
+        clearCookie(INVITE_CLUB);
+        clearCookie(INVITE_REF);
+        router.push(`/clubs/${clubId}`);
+        return;
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Algo salió mal");
     } finally {
@@ -259,6 +278,32 @@ export default function ProfilePage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Share referral link */}
+      {playerId && (
+        <Button
+          variant="outline"
+          className="w-full flex items-center gap-2"
+          onClick={async () => {
+            const url = `${window.location.origin}/invite/user/${playerId}`;
+            if (navigator.share) {
+              try {
+                await navigator.share({
+                  title: "Cancha",
+                  text: "¡Únete a Cancha y juega fútbol conmigo!",
+                  url,
+                });
+              } catch {}
+            } else {
+              await navigator.clipboard.writeText(url);
+              toast.success("¡Link copiado!");
+            }
+          }}
+        >
+          <Share2 className="h-4 w-4" />
+          Invitar amigos a Cancha
+        </Button>
+      )}
     </div>
   );
 }

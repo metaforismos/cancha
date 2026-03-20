@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import {
+  INVITE_CLUB,
+  INVITE_REF,
+  getCookie,
+  setCookie,
+  clearCookie,
+} from "@/lib/invite";
 
 const COUNTRIES = [
   { code: "MX", prefix: "52", flag: "🇲🇽", label: "México", digits: 10, placeholder: "55 1234 5678" },
@@ -38,6 +45,15 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Capture invite params into cookies on mount
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    const club = searchParams.get("club");
+    if (ref) setCookie(INVITE_REF, ref);
+    if (club) setCookie(INVITE_CLUB, club);
+  }, [searchParams]);
 
   const selectedCountry = COUNTRIES.find((c) => c.code === country)!;
 
@@ -87,9 +103,23 @@ export default function LoginPage() {
       }
 
       if (data.needsProfile) {
+        // Cookies persist through to profile page
         router.push("/profile");
       } else {
-        router.push("/");
+        // Existing user — check for pending club invite
+        const clubId = getCookie(INVITE_CLUB);
+        if (clubId) {
+          try {
+            await fetch(`/api/groups/${clubId}/members`, { method: "POST" });
+            toast.success("¡Te uniste al club!");
+          } catch {}
+          clearCookie(INVITE_CLUB);
+          clearCookie(INVITE_REF);
+          router.push(`/clubs/${clubId}`);
+        } else {
+          clearCookie(INVITE_REF);
+          router.push("/");
+        }
       }
     } catch {
       toast.error("Error de conexión");

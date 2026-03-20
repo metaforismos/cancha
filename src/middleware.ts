@@ -4,15 +4,18 @@ export function middleware(request: NextRequest) {
   const sessionId = request.cookies.get("session_id")?.value;
   const { pathname } = request.nextUrl;
 
-  const isAuthRoute = pathname === "/login" || pathname === "/verify";
+  const isPublicRoute =
+    pathname === "/login" ||
+    pathname === "/verify" ||
+    pathname.startsWith("/invite");
 
   // Unauthenticated user trying to access protected route
-  if (!sessionId && !isAuthRoute) {
+  if (!sessionId && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Authenticated user trying to access auth routes
-  if (sessionId && isAuthRoute) {
+  // Authenticated user trying to access auth routes (not invite pages)
+  if (sessionId && (pathname === "/login" || pathname === "/verify")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
