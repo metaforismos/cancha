@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     .select({
       id: matches.id,
       date: matches.date,
+      endTime: matches.endTime,
       location: matches.location,
       locationUrl: matches.locationUrl,
       format: matches.format,
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
     .values({
       groupId: parsed.data.groupId || defaultGroup.id,
       date: new Date(parsed.data.date),
+      endTime: new Date(parsed.data.endTime),
       location: parsed.data.location,
       locationUrl: parsed.data.locationUrl || null,
       format: parsed.data.format,

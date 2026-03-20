@@ -25,6 +25,7 @@ export default function EditMatchPage() {
   const [format, setFormat] = useState<MatchFormat>("7v7");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const [endTimeVal, setEndTimeVal] = useState("");
   const [location, setLocation] = useState("");
   const [locationUrl, setLocationUrl] = useState("");
   const [status, setStatus] = useState("open");
@@ -42,6 +43,10 @@ export default function EditMatchPage() {
         setFormat(m.format as MatchFormat);
         setDate(d.toISOString().split("T")[0]);
         setTime(d.toTimeString().slice(0, 5));
+        if (m.endTime) {
+          const et = new Date(m.endTime);
+          setEndTimeVal(et.toTimeString().slice(0, 5));
+        }
         setLocation(m.location);
         setLocationUrl(m.locationUrl || "");
         setStatus(m.status);
@@ -56,6 +61,11 @@ export default function EditMatchPage() {
 
     setLoading(true);
     const matchDate = new Date(`${date}T${time}`);
+    let endTime: Date | null = null;
+    if (endTimeVal) {
+      endTime = new Date(`${date}T${endTimeVal}`);
+      if (endTime <= matchDate) endTime.setDate(endTime.getDate() + 1);
+    }
     const deadline = new Date(matchDate.getTime() - 2 * 60 * 60 * 1000);
 
     try {
@@ -64,6 +74,7 @@ export default function EditMatchPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: matchDate.toISOString(),
+          endTime: endTime?.toISOString() || null,
           location,
           locationUrl: locationUrl || undefined,
           format,
@@ -133,23 +144,32 @@ export default function EditMatchPage() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Fecha</label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Fecha</label>
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Hora</label>
+                <label className="text-sm font-medium">Hora inicio</label>
                 <Input
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Hora término</label>
+                <Input
+                  type="time"
+                  value={endTimeVal}
+                  onChange={(e) => setEndTimeVal(e.target.value)}
                 />
               </div>
             </div>

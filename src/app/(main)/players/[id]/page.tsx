@@ -35,6 +35,14 @@ interface IndividualRating {
   createdAt: string;
 }
 
+interface MatchStats {
+  goals: number;
+  assists: number;
+  yellow_cards: number;
+  red_cards: number;
+  matches_played: number;
+}
+
 interface PlayerProfile {
   player: {
     id: string;
@@ -52,6 +60,7 @@ interface PlayerProfile {
   isMe: boolean;
   canEdit: boolean;
   individualRatings: IndividualRating[];
+  matchStats?: MatchStats;
 }
 
 export default function PlayerProfilePage() {
@@ -102,7 +111,7 @@ export default function PlayerProfilePage() {
     return <DetailSkeleton />;
   }
 
-  const { player, avgSkills, isMe, canEdit, individualRatings } = data;
+  const { player, avgSkills, isMe, canEdit, individualRatings, matchStats } = data;
   const displaySkills = avgSkills?.skills || player.selfSkills || {};
 
   return (
@@ -143,6 +152,39 @@ export default function PlayerProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Match Stats */}
+      {matchStats && matchStats.matches_played > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Estadísticas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-5 gap-2 text-center">
+              <div>
+                <p className="text-xl font-bold">{matchStats.matches_played}</p>
+                <p className="text-xs text-muted-foreground">PJ</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-green-500">{matchStats.goals}</p>
+                <p className="text-xs text-muted-foreground">Goles</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-blue-500">{matchStats.assists}</p>
+                <p className="text-xs text-muted-foreground">Asist.</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-yellow-500">{matchStats.yellow_cards}</p>
+                <p className="text-xs text-muted-foreground">TA</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-red-500">{matchStats.red_cards}</p>
+                <p className="text-xs text-muted-foreground">TR</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

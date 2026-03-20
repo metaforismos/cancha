@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getPlayerAvgSkills, getRatingByPair, getPlayerRatingsWithRaters, upsertPlayer } from "@/lib/db/queries";
+import { getPlayerAvgSkills, getRatingByPair, getPlayerRatingsWithRaters, upsertPlayer, getPlayerMatchStats } from "@/lib/db/queries";
 import { db } from "@/lib/db";
 import { players } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -34,6 +34,7 @@ export async function GET(
   const canEdit = isMe || session.player.isAdmin;
 
   const individualRatings = await getPlayerRatingsWithRaters(id);
+  const matchStats = await getPlayerMatchStats(id);
 
   return NextResponse.json({
     player,
@@ -42,6 +43,7 @@ export async function GET(
     isMe,
     canEdit,
     individualRatings,
+    matchStats,
   });
 }
 

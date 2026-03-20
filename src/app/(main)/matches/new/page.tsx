@@ -24,6 +24,7 @@ export default function NewMatchPage() {
   const [format, setFormat] = useState<MatchFormat>("7v7");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+  const [endTimeVal, setEndTimeVal] = useState("");
   const [location, setLocation] = useState("");
   const [locationUrl, setLocationUrl] = useState("");
   const [clubId, setClubId] = useState(preselectedClubId || "");
@@ -40,11 +41,16 @@ export default function NewMatchPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!date || !time || !location) return;
+    if (!date || !time || !endTimeVal || !location) return;
 
     setLoading(true);
 
     const matchDate = new Date(`${date}T${time}`);
+    const endTime = new Date(`${date}T${endTimeVal}`);
+    // If end time is before start time, assume next day
+    if (endTime <= matchDate) {
+      endTime.setDate(endTime.getDate() + 1);
+    }
     const deadline = new Date(matchDate.getTime() - 2 * 60 * 60 * 1000); // 2h before
 
     try {
@@ -53,6 +59,7 @@ export default function NewMatchPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: matchDate.toISOString(),
+          endTime: endTime.toISOString(),
           location,
           locationUrl: locationUrl || undefined,
           format,
@@ -122,22 +129,32 @@ export default function NewMatchPage() {
               </p>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Fecha</label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Fecha</label>
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Hora</label>
+                <label className="text-sm font-medium">Hora inicio</label>
                 <Input
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Hora término</label>
+                <Input
+                  type="time"
+                  value={endTimeVal}
+                  onChange={(e) => setEndTimeVal(e.target.value)}
                   required
                 />
               </div>

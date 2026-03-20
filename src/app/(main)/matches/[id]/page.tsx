@@ -10,8 +10,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { DetailSkeleton } from "@/components/skeleton-cards";
-import { formatFullDate, formatDeadline } from "@/lib/format";
-import { Share2, CircleDot, Lock, Play, CheckCircle } from "lucide-react";
+import { formatDateWithRange, formatDeadline } from "@/lib/format";
+import { Share2, CircleDot, Lock, Play, CheckCircle, BarChart3 } from "lucide-react";
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   open: <CircleDot className="h-3 w-3" />,
@@ -25,6 +25,7 @@ interface MatchDetail {
     id: string;
     groupId: string;
     date: string;
+    endTime: string | null;
     location: string;
     locationUrl: string | null;
     format: string;
@@ -39,6 +40,7 @@ interface MatchDetail {
   currentUserId: string;
   canEdit: boolean;
   ratingCount?: number;
+  canRecordStats?: boolean;
 }
 
 export default function MatchDetailPage() {
@@ -162,7 +164,7 @@ export default function MatchDetailPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>{formatFullDate(match.date)}</p>
+            <p>{formatDateWithRange(match.date, match.endTime)}</p>
             <p>{match.location}</p>
             {match.locationUrl && (
               <a
@@ -208,6 +210,18 @@ export default function MatchDetailPage() {
                 </Link>
               </div>
             </div>
+          )}
+
+          {(match.status === "in_progress" || match.status === "completed") && (
+            <Link href={`/matches/${id}/result`}>
+              <Button
+                variant="outline"
+                className="w-full flex items-center gap-2"
+              >
+                <BarChart3 className="h-4 w-4" />
+                {data.canRecordStats ? "Registrar estadísticas" : "Ver estadísticas"}
+              </Button>
+            </Link>
           )}
 
           {canEdit && (

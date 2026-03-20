@@ -11,7 +11,7 @@ import { FloatingAction } from "@/components/floating-action";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { DetailSkeleton } from "@/components/skeleton-cards";
-import { formatMatchDate } from "@/lib/format";
+import { formatMatchDateWithRange } from "@/lib/format";
 import { CircleDot, Lock, Play, CheckCircle, UserPlus } from "lucide-react";
 
 interface ClubDetail {
@@ -35,6 +35,7 @@ interface ClubDetail {
 interface MatchData {
   id: string;
   date: string;
+  endTime?: string | null;
   location: string;
   format: string;
   status: string;
@@ -266,7 +267,7 @@ export default function ClubDetailPage() {
                     <div>
                       <p className="font-medium text-sm">{match.format}</p>
                       <p className="text-xs text-muted-foreground">
-                        {formatMatchDate(match.date)}
+                        {formatMatchDateWithRange(match.date, match.endTime)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {match.location}

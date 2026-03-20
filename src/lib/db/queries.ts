@@ -492,3 +492,83 @@ export async function getMatchEvents(matchId: string) {
     .innerJoin(players, eq(matchEvents.playerId, players.id))
     .where(eq(matchEvents.matchId, matchId));
 }
+
+// ─── Auto Status ─────────────────────────────────────────
+
+/**
+ * Automatically update match status based on current time.
+ * - If now >= startTime and now < endTime → in_progress
+ * - If now >= endTime → completed
+ * Only updates matches in open or in_progress state.
+ */
+export async function autoUpdateMatchStatus(matchId: string) {
+  const match = await getMatch(matchId);
+  if (!match) return match;
+
+  const now = new Date();
+  const startTime = new Date(match.date);
+  const endTime = match.endTime ? new Date(match.endTime) : null;
+
+  let newStatus: string | null = null;
+
+  if (endTime && now >= endTime && (match.status === "open" || match.status === "in_progress")) {
+    newStatus = "completed";
+  } else if (now >= startTime && match.status === "open") {
+    newStatus = "in_progress";
+  }
+
+  if (newStatus && newStatus !== match.status) {
+    const [updated] = await db
+      .update(matches)
+      .set({ status: newStatus as "open" | "closed" | "in_progress" | "completed" })
+      .where(eq(matches.id, matchId))
+      .returning();
+    return updated;
+  }
+
+  return match;
+}
+
+// ─── Player Match Stats ─────────────────────────────────
+
+export async function getPlayerMatchStats(playerId: string) {
+  const events = await db
+    .select({
+      type: matchEvents.type,
+      cnt: count(),
+    })
+    .from(matchEvents)
+    .where(eq(matchEvents.playerId, playerId))
+    .groupBy(matchEvents.type);
+
+  const stats: Record<string, number> = {
+    goals: 0,
+    assists: 0,
+    yellow_cards: 0,
+    red_cards: 0,
+  };
+
+  for (const row of events) {
+    if (row.type === "goal") stats.goals = row.cnt;
+    if (row.type === "assist") stats.assists = row.cnt;
+    if (row.type === "yellow_card") stats.yellow_cards = row.cnt;
+    if (row.type === "red_card") stats.red_cards = row.cnt;
+  }
+
+  // Count matches played
+  const [matchCount] = await db
+    .select({ count: count() })
+    .from(matchEnrollments)
+    .innerJoin(matches, eq(matchEnrollments.matchId, matches.id))
+    .where(
+      and(
+        eq(matchEnrollments.playerId, playerId),
+        eq(matchEnrollments.status, "enrolled"),
+        eq(matches.status, "completed")
+      )
+    );
+
+  stats.matches_played = matchCount?.count ?? 0;
+
+  return stats;
+}

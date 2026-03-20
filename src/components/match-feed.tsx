@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAction } from "@/components/floating-action";
 import { MatchCardSkeleton } from "@/components/skeleton-cards";
-import { formatMatchDate } from "@/lib/format";
+import { formatMatchDateWithRange } from "@/lib/format";
 import { CircleDot, Lock, Play, CheckCircle, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 interface MatchData {
   id: string;
   date: string;
+  endTime?: string | null;
   location: string;
   format: string;
   status: string;
@@ -103,7 +104,7 @@ function MatchCard({ match }: { match: MatchData }) {
       </CardHeader>
       <CardContent className="space-y-2 text-sm text-muted-foreground">
         <div className="space-y-1">
-          <p>{formatMatchDate(match.date)}</p>
+          <p>{formatMatchDateWithRange(match.date, match.endTime)}</p>
           <p>{match.location}</p>
           <p>
             {enrolled}{maxPlayers ? `/${maxPlayers}` : ""} inscritos

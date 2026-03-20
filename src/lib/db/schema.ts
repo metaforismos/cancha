@@ -45,6 +45,8 @@ export const matchEventTypeEnum = pgEnum("match_event_type", [
   "assist",
   "injury",
   "mvp_vote",
+  "yellow_card",
+  "red_card",
 ]);
 
 // ─── Tables ──────────────────────────────────────────────
@@ -141,6 +143,7 @@ export const matches = pgTable("matches", {
     .notNull()
     .references(() => groups.id),
   date: timestamp("date", { withTimezone: true }).notNull(),
+  endTime: timestamp("end_time", { withTimezone: true }),
   location: text("location").notNull(),
   locationUrl: text("location_url"),
   format: matchFormatEnum("format").notNull(),
