@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SKILLS, POSITION_LABELS } from "@/types";
 import type { Position } from "@/types";
+import Link from "next/link";
 import { toast } from "sonner";
 
 const footLabels: Record<string, string> = {
@@ -47,6 +48,7 @@ interface PlayerProfile {
   } | null;
   myRating: { skills: Record<string, number> } | null;
   isMe: boolean;
+  canEdit: boolean;
   individualRatings: IndividualRating[];
 }
 
@@ -100,7 +102,7 @@ export default function PlayerProfilePage() {
     );
   }
 
-  const { player, avgSkills, isMe, individualRatings } = data;
+  const { player, avgSkills, isMe, canEdit, individualRatings } = data;
   const displaySkills = avgSkills?.skills || player.selfSkills || {};
 
   return (
@@ -131,6 +133,11 @@ export default function PlayerProfilePage() {
                   ({avgSkills.ratingCount} valoraciones)
                 </span>
               </p>
+            )}
+            {canEdit && !isMe && (
+              <Link href={`/players/${id}/edit`} className="mt-2">
+                <Button variant="outline" size="sm">Editar jugador</Button>
+              </Link>
             )}
           </div>
         </CardContent>

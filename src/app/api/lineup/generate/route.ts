@@ -42,21 +42,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Match not found" }, { status: 404 });
   }
 
-  // Verify user is admin
-  const [membership] = await db
-    .select()
-    .from(groupMembers)
-    .where(
-      and(
-        eq(groupMembers.groupId, match.groupId),
-        eq(groupMembers.playerId, session.player.id),
-        eq(groupMembers.role, "admin")
+  // Verify user is admin (super admin or group admin)
+  if (!session.player.isAdmin) {
+    const [membership] = await db
+      .select()
+      .from(groupMembers)
+      .where(
+        and(
+          eq(groupMembers.groupId, match.groupId),
+          eq(groupMembers.playerId, session.player.id),
+          eq(groupMembers.role, "admin")
+        )
       )
-    )
-    .limit(1);
+      .limit(1);
 
-  if (!membership) {
-    return NextResponse.json({ error: "Admin only" }, { status: 403 });
+    if (!membership) {
+      return NextResponse.json({ error: "Admin only" }, { status: 403 });
+    }
   }
 
   // Check regeneration limit

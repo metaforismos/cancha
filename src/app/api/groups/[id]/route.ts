@@ -28,7 +28,7 @@ export async function GET(
 
   const members = await getGroupMembers(id);
   const isMember = await isPlayerInClub(id, session.player.id);
-  const isAdmin = await isGroupAdmin(id, session.player.id);
+  const isAdmin = session.player.isAdmin || await isGroupAdmin(id, session.player.id);
 
   return NextResponse.json({
     ...club,

@@ -12,11 +12,13 @@ import { toast } from "sonner";
 interface MatchDetail {
   match: {
     id: string;
+    groupId: string;
     date: string;
     location: string;
     locationUrl: string | null;
     format: string;
     status: string;
+    maxPlayers: number | null;
     enrollmentDeadline: string;
   };
   enrollments: {
@@ -24,6 +26,7 @@ interface MatchDetail {
     player: { id: string; name: string; positions: string[] };
   }[];
   currentUserId: string;
+  canEdit: boolean;
 }
 
 export default function MatchDetailPage() {
@@ -52,7 +55,7 @@ export default function MatchDetailPage() {
     );
   }
 
-  const { match, enrollments, currentUserId } = data;
+  const { match, enrollments, currentUserId, canEdit } = data;
   const enrolled = enrollments.filter((e) => e.enrollment.status === "enrolled");
   const waitlisted = enrollments.filter(
     (e) => e.enrollment.status === "waitlisted"
@@ -179,6 +182,12 @@ export default function MatchDetailPage() {
                 <Button variant="outline">Alineación</Button>
               </Link>
             </div>
+          )}
+
+          {canEdit && (
+            <Link href={`/matches/${id}/edit`}>
+              <Button variant="outline" className="w-full">Editar partido</Button>
+            </Link>
           )}
         </CardContent>
       </Card>

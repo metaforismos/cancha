@@ -1,47 +1,52 @@
 # Cancha — Claude Code Instructions
 
-## Project Overview
-Cancha is a PWA for recreational soccer teams to manage match enrollment and generate balanced lineups using AI. Read `PRD.md` for full requirements and `TECH_STACK.md` for architecture decisions.
+## What is Cancha
 
-## Setup Order
+PWA for recreational soccer teams. Players enroll in matches, rate each other's skills, and an AI (Claude API) generates balanced lineups. All UI in Spanish. Mobile-first (375px+).
 
-### Phase 1: Scaffolding
-1. Initialize Next.js 14+ with App Router, TypeScript, Tailwind
-2. Install dependencies: `drizzle-orm`, `@supabase/supabase-js`, `@supabase/ssr`, `@anthropic-ai/sdk`, `zod`, `serwist`
-3. Install shadcn/ui and add components: button, card, input, dialog, badge, avatar, tabs, toast
-4. Set up project structure per TECH_STACK.md
-5. Create PWA manifest and service worker
+**Live:** https://getcancha.up.railway.app
 
-### Phase 2: Database & Auth
-1. Define Drizzle schema matching PRD data model (Section 7)
-2. Set up Supabase client (browser + server)
-3. Implement phone OTP auth flow (login → verify → redirect)
-4. Add auth middleware protecting (main) routes
-5. Generate and run initial migration
+## Tech Stack (actual)
 
-### Phase 3: Core Features
-1. Player profile creation/edit
-2. Group creation + member management
-3. Match creation (admin) with format selection
-4. Match enrollment (join/leave/waitlist)
-5. Player list with search + rating UI
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16, App Router, TypeScript |
+| UI | Tailwind CSS 4 + shadcn/ui + Lucide icons |
+| Database | PostgreSQL on Railway via Drizzle ORM |
+| Auth | Custom session-based (DB sessions table, httpOnly cookies, 30-day expiry). **No Supabase, no OTP/SMS.** |
+| AI | Anthropic Claude API (`claude-sonnet-4-6`) for lineup generation |
+| PWA | Serwist (service worker, offline caching, installable) |
+| Hosting | Railway |
 
-### Phase 4: Lineup Engine
-1. Implement Claude API integration (`lib/claude/lineup.ts`)
-2. Build the structured prompt using PRD Section 8 as template
-3. Parse and validate JSON response with Zod
-4. Lineup view with visual pitch formation (SVG)
-5. Regenerate with player lock feature
-
-### Phase 5: Post-Match
-1. Result recording (score, goals, assists)
-2. Injury tracking
-3. MVP voting
-4. Feed historical data into lineup context
+**Env vars:** `DATABASE_URL`, `ANTHROPIC_API_KEY` (see `.env.local.example`)
 
 ## Key Constraints
-- **Mobile-first**: All layouts must work on 375px+ viewport. No desktop-specific features.
-- **Budget**: Supabase free tier, Railway hobby plan. Minimize API calls.
-- **Claude model**: Use `claude-sonnet-4-6` for lineup generation.
-- **Auth**: Phone OTP only. No email, no social login.
-- **Rating gate**: Players need ≥3 ratings from others before joining matches.
+
+- **Mobile-first**: All layouts 375px+. No desktop-specific features.
+- **Budget**: Railway hobby plan (~$5/mo). Minimize Claude API calls.
+- **Language**: All UI text in Spanish.
+- **Auth**: Phone number login (no SMS verification — direct session creation).
+- **Claude model**: `claude-sonnet-4-6` for lineup generation only.
+
+## Project Structure (summary)
+
+```
+src/
+├── app/(auth)/          # Login flow
+├── app/(main)/          # Authenticated: home, matches, players, clubs, profile
+├── app/api/             # REST API routes
+├── components/          # UI components (shadcn + custom)
+├── lib/db/              # Drizzle schema, queries, migrations
+├── lib/claude/          # Lineup generation (prompt + parsing)
+├── lib/auth.ts          # Session management
+├── lib/validators.ts    # Zod schemas
+└── types/               # Shared constants (positions, skills, formats)
+```
+
+## Detailed Documentation
+
+Read these only when working on the specific area:
+
+- **`PRD.md`** — Product requirements, user flows, data model, Claude prompt structure
+- **`docs/ARCHITECTURE.md`** — Full project structure, DB schema, API routes, auth flow
+- **`docs/FEATURES.md`** — Implemented features, known gaps, and v2 backlog

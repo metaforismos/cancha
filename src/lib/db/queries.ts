@@ -238,6 +238,14 @@ export async function getGroupMembers(groupId: string) {
 }
 
 export async function isGroupAdmin(groupId: string, playerId: string) {
+  // Super admins (players.isAdmin) bypass group-level check
+  const [player] = await db
+    .select({ isAdmin: players.isAdmin })
+    .from(players)
+    .where(eq(players.id, playerId))
+    .limit(1);
+  if (player?.isAdmin) return true;
+
   const [membership] = await db
     .select()
     .from(groupMembers)

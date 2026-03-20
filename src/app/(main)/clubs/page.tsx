@@ -59,7 +59,7 @@ export default function ClubsPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Clubes</h1>
 
-      <Link href="/clubs/new">
+      <Link href="/clubs/new" className="block mb-2">
         <Button className="w-full bg-green-600 hover:bg-green-700 h-12 text-base">
           + Crear club
         </Button>

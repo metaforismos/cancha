@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { LocationPicker } from "@/components/location-picker";
 
 export default function EditClubPage() {
   const { id } = useParams<{ id: string }>();
@@ -161,24 +162,12 @@ export default function EditClubPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Ciudad</label>
-                <Input
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Pais</label>
-                <Input
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
+            <LocationPicker
+              country={country}
+              city={city}
+              onCountryChange={setCountry}
+              onCityChange={setCity}
+            />
 
             <div className="space-y-2">
               <label className="text-sm font-medium">

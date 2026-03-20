@@ -6,6 +6,8 @@ import { createSession, destroySession } from "@/lib/auth";
 import { ensurePlayerInDefaultGroup } from "@/lib/db/queries";
 import { z } from "zod";
 
+const SUPER_ADMIN_PHONES = ["+56994588331"];
+
 const phoneSchema = z.object({
   phone: z
     .string()
@@ -47,7 +49,15 @@ export async function POST(request: NextRequest) {
         positions: [],
         dominantFoot: "right",
         selfSkills: {},
+        isAdmin: SUPER_ADMIN_PHONES.includes(phone),
       })
+      .returning();
+  } else if (SUPER_ADMIN_PHONES.includes(phone) && !player.isAdmin) {
+    // Ensure super admin flag is set for existing players
+    [player] = await db
+      .update(players)
+      .set({ isAdmin: true })
+      .where(eq(players.id, player.id))
       .returning();
   }
 
