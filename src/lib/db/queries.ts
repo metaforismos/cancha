@@ -10,7 +10,7 @@ import {
   matchResults,
   matchEvents,
 } from "./schema";
-import { eq, ne, and, desc, sql, ilike, count } from "drizzle-orm";
+import { eq, ne, and, desc, sql, ilike, count, inArray } from "drizzle-orm";
 import { SKILLS } from "@/types";
 
 // ─── Players ─────────────────────────────────────────────
@@ -148,7 +148,7 @@ export async function getPlayerAvgSkillsBatch(playerIds: string[]) {
   const ratings = await db
     .select()
     .from(playerRatings)
-    .where(sql`${playerRatings.ratedId} = ANY(${playerIds})`);
+    .where(inArray(playerRatings.ratedId, playerIds));
 
   // Group by ratedId
   const byPlayer = new Map<string, typeof ratings>();

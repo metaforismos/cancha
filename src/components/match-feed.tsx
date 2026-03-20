@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { FloatingAction } from "@/components/floating-action";
 import { MatchCardSkeleton } from "@/components/skeleton-cards";
 import { formatMatchDate } from "@/lib/format";
-import { CircleDot, Lock, Play, CheckCircle } from "lucide-react";
+import { CircleDot, Lock, Play, CheckCircle, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface MatchData {
   id: string;
@@ -99,12 +101,38 @@ function MatchCard({ match }: { match: MatchData }) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-1 text-sm text-muted-foreground">
-        <p>{formatMatchDate(match.date)}</p>
-        <p>{match.location}</p>
-        <p>
-          {enrolled}{maxPlayers ? `/${maxPlayers}` : ""} inscritos
-        </p>
+      <CardContent className="space-y-2 text-sm text-muted-foreground">
+        <div className="space-y-1">
+          <p>{formatMatchDate(match.date)}</p>
+          <p>{match.location}</p>
+          <p>
+            {enrolled}{maxPlayers ? `/${maxPlayers}` : ""} inscritos
+          </p>
+        </div>
+        {match.status === "open" && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full flex items-center gap-1.5 text-green-500 border-green-600/30 hover:bg-green-600/10"
+            onClick={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const url = `${window.location.origin}/matches/${match.id}`;
+              const text = `¡Únete al partido ${match.format} en ${match.location}!`;
+              if (navigator.share) {
+                try {
+                  await navigator.share({ title: `Partido ${match.format}`, text, url });
+                } catch {}
+              } else {
+                await navigator.clipboard.writeText(url);
+                toast.success("¡Link copiado!");
+              }
+            }}
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+            Invitar jugadores
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
