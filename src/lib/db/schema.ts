@@ -27,6 +27,11 @@ export const matchFormatEnum = pgEnum("match_format", [
   "11v11",
 ]);
 
+export const matchCategoryEnum = pgEnum("match_category", [
+  "friendly",
+  "league",
+]);
+
 export const matchStatusEnum = pgEnum("match_status", [
   "open",
   "closed",
@@ -147,6 +152,7 @@ export const matches = pgTable("matches", {
   location: text("location").notNull(),
   locationUrl: text("location_url"),
   format: matchFormatEnum("format").notNull(),
+  category: matchCategoryEnum("category").notNull().default("friendly"),
   maxPlayers: integer("max_players").notNull(),
   enrollmentDeadline: timestamp("enrollment_deadline", {
     withTimezone: true,

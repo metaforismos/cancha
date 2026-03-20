@@ -7,9 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { FloatingAction } from "@/components/floating-action";
 import { MatchCardSkeleton } from "@/components/skeleton-cards";
 import { formatMatchDateWithRange } from "@/lib/format";
-import { CircleDot, Lock, Play, CheckCircle, UserPlus } from "lucide-react";
+import { CircleDot, Lock, Play, CheckCircle, UserPlus, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  FORMAT_FILTERS,
+  FORMAT_FILTER_LABELS,
+  FORMAT_FILTER_MAP,
+  CATEGORY_LABELS,
+} from "@/types";
+import type { FormatFilter } from "@/types";
 
 interface MatchData {
   id: string;
@@ -17,6 +24,7 @@ interface MatchData {
   endTime?: string | null;
   location: string;
   format: string;
+  category?: string;
   status: string;
   maxPlayers?: number | null;
   enrolledCount?: number;
@@ -39,6 +47,7 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 export function MatchFeed() {
   const [matches, setMatches] = useState<MatchData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [formatFilter, setFormatFilter] = useState<FormatFilter>("all");
 
   useEffect(() => {
     fetch("/api/matches")
@@ -49,6 +58,13 @@ export function MatchFeed() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const filteredMatches =
+    formatFilter === "all"
+      ? matches
+      : matches.filter((m) =>
+          FORMAT_FILTER_MAP[formatFilter].includes(m.format)
+        );
 
   if (loading) {
     return (
@@ -63,14 +79,40 @@ export function MatchFeed() {
   return (
     <div className="space-y-4 pb-20">
       <FloatingAction href="/matches/new" label="+ Crear partido" />
-      {matches.length === 0 ? (
+
+      {/* Format filter tabs */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+        {FORMAT_FILTERS.map((f) => (
+          <button
+            key={f}
+            onClick={() => setFormatFilter(f)}
+            className={`whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              formatFilter === f
+                ? "bg-green-600 text-white"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            }`}
+          >
+            {FORMAT_FILTER_LABELS[f]}
+          </button>
+        ))}
+      </div>
+
+      {filteredMatches.length === 0 ? (
         <div className="text-center text-muted-foreground py-8">
           <div className="text-4xl mb-3">&#9917;</div>
-          <p className="font-medium">Sin partidos aún</p>
-          <p className="text-sm">Crea el primero y convoca a tus amigos</p>
+          <p className="font-medium">
+            {matches.length === 0
+              ? "Sin partidos aún"
+              : "Sin partidos en esta categoría"}
+          </p>
+          <p className="text-sm">
+            {matches.length === 0
+              ? "Crea el primero y convoca a tus amigos"
+              : "Prueba con otro filtro"}
+          </p>
         </div>
       ) : (
-        matches.map((match) => (
+        filteredMatches.map((match) => (
           <Link key={match.id} href={`/matches/${match.id}`}>
             <MatchCard match={match} />
           </Link>
@@ -90,12 +132,21 @@ function MatchCard({ match }: { match: MatchData }) {
 
   const enrolled = match.enrolledCount ?? 0;
   const maxPlayers = match.maxPlayers && match.maxPlayers < 999 ? match.maxPlayers : null;
+  const isLeague = match.category === "league";
 
   return (
     <Card className="mt-3">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{match.format}</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg">{match.format}</CardTitle>
+            {isLeague && (
+              <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                <Trophy className="h-3 w-3" />
+                Liga
+              </Badge>
+            )}
+          </div>
           <Badge className={`${statusColors[match.status] || "bg-muted"} flex items-center gap-1`}>
             {STATUS_ICONS[match.status]}
             {STATUS_LABELS[match.status] || match.status}

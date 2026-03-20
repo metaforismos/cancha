@@ -48,6 +48,32 @@ export const FORMAT_PLAYER_COUNTS: Record<MatchFormat, number> = {
   "11v11": 22,
 };
 
+export const MATCH_CATEGORIES = ["friendly", "league"] as const;
+export type MatchCategory = (typeof MATCH_CATEGORIES)[number];
+
+export const CATEGORY_LABELS: Record<MatchCategory, string> = {
+  friendly: "Partido amistoso",
+  league: "Partido de liga",
+};
+
+export const FORMAT_FILTER_LABELS: Record<string, string> = {
+  all: "Todos",
+  "5v5": "Fútbol 5",
+  "7v7": "Fútbol 7",
+  "11v11": "Fútbol 11",
+};
+
+export const FORMAT_FILTERS = ["all", "5v5", "7v7", "11v11"] as const;
+export type FormatFilter = (typeof FORMAT_FILTERS)[number];
+
+/** Which match formats are included in each filter */
+export const FORMAT_FILTER_MAP: Record<FormatFilter, string[]> = {
+  all: ["5v5", "7v7", "8v8", "11v11"],
+  "5v5": ["5v5"],
+  "7v7": ["7v7", "8v8"],
+  "11v11": ["11v11"],
+};
+
 export type DominantFoot = "left" | "right" | "both";
 
 export interface LineupPlayer {

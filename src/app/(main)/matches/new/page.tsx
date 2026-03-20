@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MATCH_FORMATS } from "@/types";
-import type { MatchFormat } from "@/types";
+import { MATCH_FORMATS, MATCH_CATEGORIES, CATEGORY_LABELS } from "@/types";
+import type { MatchFormat, MatchCategory } from "@/types";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 
@@ -22,6 +22,7 @@ export default function NewMatchPage() {
 
   const [loading, setLoading] = useState(false);
   const [format, setFormat] = useState<MatchFormat>("7v7");
+  const [category, setCategory] = useState<MatchCategory>("friendly");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [endTimeVal, setEndTimeVal] = useState("");
@@ -63,6 +64,7 @@ export default function NewMatchPage() {
           location,
           locationUrl: locationUrl || undefined,
           format,
+          category,
           enrollmentDeadline: deadline.toISOString(),
           groupId: clubId || undefined,
         }),
@@ -127,6 +129,23 @@ export default function NewMatchPage() {
               <p className="text-xs text-muted-foreground">
                 Sin limite de inscritos
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo de partido</label>
+              <div className="grid grid-cols-2 gap-2">
+                {MATCH_CATEGORIES.map((cat) => (
+                  <Button
+                    key={cat}
+                    type="button"
+                    variant={category === cat ? "default" : "outline"}
+                    className={category === cat ? "bg-green-600" : ""}
+                    onClick={() => setCategory(cat)}
+                  >
+                    {CATEGORY_LABELS[cat]}
+                  </Button>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-2">

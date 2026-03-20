@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { DetailSkeleton } from "@/components/skeleton-cards";
 import { formatDateWithRange, formatDeadline } from "@/lib/format";
-import { Share2, CircleDot, Lock, Play, CheckCircle, BarChart3 } from "lucide-react";
+import { Share2, CircleDot, Lock, Play, CheckCircle, BarChart3, Trophy } from "lucide-react";
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
   open: <CircleDot className="h-3 w-3" />,
@@ -29,6 +29,7 @@ interface MatchDetail {
     location: string;
     locationUrl: string | null;
     format: string;
+    category?: string;
     status: string;
     maxPlayers: number | null;
     enrollmentDeadline: string;
@@ -155,7 +156,15 @@ export default function MatchDetailPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{match.format}</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle>{match.format}</CardTitle>
+              {match.category === "league" && (
+                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                  <Trophy className="h-3 w-3" />
+                  Liga
+                </Badge>
+              )}
+            </div>
             <Badge className={`${statusColors[match.status] || "bg-muted"} flex items-center gap-1`}>
               {STATUS_ICONS[match.status]}
               {statusLabels[match.status] || match.status}

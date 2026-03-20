@@ -5,8 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MATCH_FORMATS } from "@/types";
-import type { MatchFormat } from "@/types";
+import { MATCH_FORMATS, MATCH_CATEGORIES, CATEGORY_LABELS } from "@/types";
+import type { MatchFormat, MatchCategory } from "@/types";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 
@@ -28,6 +28,7 @@ export default function EditMatchPage() {
   const [endTimeVal, setEndTimeVal] = useState("");
   const [location, setLocation] = useState("");
   const [locationUrl, setLocationUrl] = useState("");
+  const [category, setCategory] = useState<MatchCategory>("friendly");
   const [status, setStatus] = useState("open");
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function EditMatchPage() {
         }
         setLocation(m.location);
         setLocationUrl(m.locationUrl || "");
+        setCategory((m.category as MatchCategory) || "friendly");
         setStatus(m.status);
       })
       .catch(() => router.replace(`/matches/${id}`))
@@ -78,6 +80,7 @@ export default function EditMatchPage() {
           location,
           locationUrl: locationUrl || undefined,
           format,
+          category,
           status,
           enrollmentDeadline: deadline.toISOString(),
         }),
@@ -139,6 +142,23 @@ export default function EditMatchPage() {
                     onClick={() => setFormat(f)}
                   >
                     {f}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo de partido</label>
+              <div className="grid grid-cols-2 gap-2">
+                {MATCH_CATEGORIES.map((cat) => (
+                  <Button
+                    key={cat}
+                    type="button"
+                    variant={category === cat ? "default" : "outline"}
+                    className={category === cat ? "bg-green-600" : ""}
+                    onClick={() => setCategory(cat)}
+                  >
+                    {CATEGORY_LABELS[cat]}
                   </Button>
                 ))}
               </div>
