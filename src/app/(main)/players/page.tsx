@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { POSITIONS, POSITION_LABELS } from "@/types";
 import { PlayerCardSkeleton } from "@/components/skeleton-cards";
 import type { Position } from "@/types";
@@ -160,6 +161,13 @@ export default function PlayersPage() {
                 ? "Intenta con otros filtros"
                 : "Únete a un club para ver jugadores"}
             </p>
+            {!search && !posFilter && clubs.length === 0 && (
+              <Link href="/clubs">
+                <Button className="mt-4 bg-green-600 hover:bg-green-700">
+                  Explorar clubes
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
           filteredPlayers.map((player, idx) => (
