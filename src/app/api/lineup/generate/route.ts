@@ -11,11 +11,21 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { generateLineup } from "@/lib/claude/lineup";
+import { claudeLimiter } from "@/lib/rate-limit";
 import type { PlayerForLineup } from "@/lib/claude/types";
 import type { SkillRatings } from "@/types";
 import { SKILLS } from "@/types";
 
 export async function POST(request: NextRequest) {
+  try {
+    await claudeLimiter.consume("global");
+  } catch {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 }
+    );
+  }
+
   const session = await getSession();
 
   if (!session) {

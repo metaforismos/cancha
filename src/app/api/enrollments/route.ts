@@ -8,6 +8,7 @@ import {
   isPlayerInClub,
 } from "@/lib/db/queries";
 import { eq, and, sql } from "drizzle-orm";
+import { sendPushToPlayer } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   const session = await getSession();
@@ -122,6 +123,15 @@ export async function POST(request: NextRequest) {
       status,
     });
   }
+
+  // Fire-and-forget push notification to match creator
+  sendPushToPlayer(match.createdBy, {
+    type: "enrollment_update",
+    title: "Nueva inscripción",
+    body: `${session.player.name} se inscribió a tu partido`,
+    url: `/matches/${matchId}`,
+    matchId,
+  }).catch(() => {});
 
   return NextResponse.json({ status }, { status: 201 });
 }

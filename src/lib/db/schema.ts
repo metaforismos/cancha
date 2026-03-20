@@ -242,6 +242,26 @@ export const matchResults = pgTable("match_results", {
     .defaultNow(),
 });
 
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    playerId: uuid("player_id")
+      .notNull()
+      .references(() => players.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_push_subs_player_id").on(table.playerId),
+    uniqueIndex("unique_push_endpoint").on(table.endpoint),
+  ]
+);
+
 export const matchEvents = pgTable("match_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   matchId: uuid("match_id")

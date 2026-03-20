@@ -15,17 +15,21 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const my = searchParams.get("my");
 
+  const cacheHeaders = {
+    "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+  };
+
   // Return only player's clubs
   if (my === "true") {
     const playerGroups = await getPlayerGroups(session.player.id);
-    return NextResponse.json(playerGroups);
+    return NextResponse.json(playerGroups, { headers: cacheHeaders });
   }
 
   // Return all clubs with filters
   const city = searchParams.get("city") || undefined;
   const country = searchParams.get("country") || undefined;
   const clubs = await getAllClubs({ city, country });
-  return NextResponse.json(clubs);
+  return NextResponse.json(clubs, { headers: cacheHeaders });
 }
 
 export async function POST(request: NextRequest) {

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { playerRatings } from "@/lib/db/schema";
 import { ratingSchema } from "@/lib/validators";
 import { eq, and } from "drizzle-orm";
+import { sendPushToPlayer } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   const session = await getSession();
@@ -56,6 +57,14 @@ export async function POST(request: NextRequest) {
       skills: parsed.data.skills,
     });
   }
+
+  // Fire-and-forget push notification to rated player
+  sendPushToPlayer(parsed.data.ratedId, {
+    type: "new_rating",
+    title: "Nueva calificación",
+    body: `${session.player.name} te calificó`,
+    url: "/players",
+  }).catch(() => {});
 
   return NextResponse.json({ success: true });
 }

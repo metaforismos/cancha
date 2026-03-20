@@ -9,6 +9,7 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   turbopack: {},
+  serverExternalPackages: ["web-push"],
 };
 
 export default withSerwist(nextConfig);

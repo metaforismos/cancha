@@ -5,6 +5,8 @@ import { matches, matchEnrollments } from "@/lib/db/schema";
 import { matchCreateSchema } from "@/lib/validators";
 import { desc, eq, sql, and, count } from "drizzle-orm";
 import { ensurePlayerInDefaultGroup } from "@/lib/db/queries";
+import { sendPushToClub } from "@/lib/notifications";
+import { formatMatchDate } from "@/lib/format";
 
 export async function GET(request: NextRequest) {
   const session = await getSession();
@@ -56,7 +58,9 @@ export async function GET(request: NextRequest) {
     .limit(limit)
     .offset(offset);
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: { "Cache-Control": "private, no-cache" },
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -96,6 +100,21 @@ export async function POST(request: NextRequest) {
       createdBy: session.player.id,
     })
     .returning({ id: matches.id });
+
+  // Fire-and-forget push notification to club members
+  const matchGroupId = parsed.data.groupId || defaultGroup.id;
+  const matchDate = formatMatchDate(parsed.data.date);
+  sendPushToClub(
+    matchGroupId,
+    {
+      type: "match_created",
+      title: "Nuevo partido",
+      body: `⚽ Nuevo partido el ${matchDate} en ${parsed.data.location}`,
+      url: `/matches/${match.id}`,
+      matchId: match.id,
+    },
+    session.player.id
+  ).catch(() => {});
 
   return NextResponse.json({ id: match.id }, { status: 201 });
 }

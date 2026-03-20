@@ -8,6 +8,7 @@ import { FloatingAction } from "@/components/floating-action";
 import { MatchCardSkeleton } from "@/components/skeleton-cards";
 import { formatMatchDateWithRange } from "@/lib/format";
 import { CircleDot, Lock, Play, CheckCircle, UserPlus, Trophy, Dumbbell } from "lucide-react";
+import { MatchStatusBadge } from "@/components/match-status-badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -30,6 +31,7 @@ interface MatchData {
   enrolledCount?: number;
   teamAName?: string | null;
   teamBName?: string | null;
+  enrollmentDeadline?: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -170,9 +172,18 @@ function MatchCard({ match }: { match: MatchData }) {
           {hasTeamNames && <p>{match.format}</p>}
           <p>{formatMatchDateWithRange(match.date, match.endTime)}</p>
           <p>{match.location}</p>
-          <p>
-            {enrolled}{maxPlayers ? `/${maxPlayers}` : ""} inscritos
-          </p>
+          {maxPlayers && match.enrollmentDeadline ? (
+            <MatchStatusBadge
+              enrolled={enrolled}
+              maxPlayers={maxPlayers}
+              enrollmentDeadline={match.enrollmentDeadline}
+              matchDate={match.date}
+            />
+          ) : (
+            <p>
+              {enrolled}{maxPlayers ? `/${maxPlayers}` : ""} inscritos
+            </p>
+          )}
         </div>
         {match.status === "open" && (
           <Button

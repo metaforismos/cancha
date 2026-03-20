@@ -9,6 +9,7 @@ import { MATCH_FORMATS, MATCH_CATEGORIES, CATEGORY_LABELS } from "@/types";
 import type { MatchFormat, MatchCategory } from "@/types";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
+import { ShareMatchDialog } from "@/components/share-match-dialog";
 
 interface ClubOption {
   group: { id: string; name: string };
@@ -32,6 +33,13 @@ export default function NewMatchPage() {
   const [clubs, setClubs] = useState<ClubOption[]>([]);
   const [teamAName, setTeamAName] = useState("");
   const [teamBName, setTeamBName] = useState("");
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [createdMatch, setCreatedMatch] = useState<{
+    id: string;
+    date: string;
+    location: string;
+    format: string;
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/groups?my=true")
@@ -81,7 +89,13 @@ export default function NewMatchPage() {
 
       const { id } = await res.json();
       toast.success("Partido creado!");
-      router.push(`/matches/${id}`);
+      setCreatedMatch({
+        id,
+        date: matchDate.toISOString(),
+        location,
+        format,
+      });
+      setShowShareDialog(true);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Algo salió mal");
     } finally {
@@ -240,6 +254,19 @@ export default function NewMatchPage() {
           </form>
         </CardContent>
       </Card>
+
+      {createdMatch && (
+        <ShareMatchDialog
+          open={showShareDialog}
+          onOpenChange={(open) => {
+            setShowShareDialog(open);
+            if (!open) {
+              router.push(`/matches/${createdMatch.id}`);
+            }
+          }}
+          match={createdMatch}
+        />
+      )}
     </div>
   );
 }

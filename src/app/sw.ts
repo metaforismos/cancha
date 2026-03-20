@@ -19,4 +19,25 @@ const serwist = new Serwist({
   runtimeCaching: defaultCache,
 });
 
+// Push notification handlers
+const swSelf = self as unknown as ServiceWorkerGlobalScope;
+
+swSelf.addEventListener("push", (event) => {
+  const data = event.data?.json();
+  event.waitUntil(
+    swSelf.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon ?? "/icons/icon-192x192.png",
+      badge: "/icons/icon-192x192.png",
+      data: { url: data.url },
+    })
+  );
+});
+
+swSelf.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? "/";
+  event.waitUntil(swSelf.clients.openWindow(url));
+});
+
 serwist.addEventListeners();

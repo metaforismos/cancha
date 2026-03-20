@@ -4,6 +4,7 @@ import { players } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { createSession, destroySession } from "@/lib/auth";
 import { ensurePlayerInDefaultGroup } from "@/lib/db/queries";
+import { authLimiter } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const SUPER_ADMIN_PHONES = ["+56994588331"];
@@ -16,6 +17,16 @@ const phoneSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+  try {
+    await authLimiter.consume(ip);
+  } catch {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 }
+    );
+  }
+
   const body = await request.json();
   const parsed = phoneSchema.safeParse(body);
 

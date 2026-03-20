@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { DetailSkeleton } from "@/components/skeleton-cards";
 import { formatMatchDateWithRange } from "@/lib/format";
-import { CircleDot, Lock, Play, CheckCircle, UserPlus } from "lucide-react";
+import { CircleDot, Lock, Play, CheckCircle, UserPlus, Trophy, ChevronRight } from "lucide-react";
 
 interface ClubDetail {
   group: {
@@ -219,6 +219,28 @@ export default function ClubDetailPage() {
 
       {isMember && (
         <FloatingAction href={`/matches/new?clubId=${id}`} label="+ Crear partido" />
+      )}
+
+      {/* Leaderboard link */}
+      {isMember && (
+        <Link href={`/clubs/${id}/leaderboard`}>
+          <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-green-600/10 flex items-center justify-center">
+                  <Trophy className="h-5 w-5 text-green-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">Tabla de líderes</p>
+                  <p className="text-xs text-muted-foreground">
+                    Goles, asistencias, MVPs y más
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       )}
 
       {/* Members */}
