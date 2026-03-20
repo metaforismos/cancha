@@ -31,7 +31,7 @@ export async function POST(
   return NextResponse.json({ success: true }, { status: 201 });
 }
 
-// Super admin: add a player to the club by phone number
+// Super admin: add a player to the club by playerId or phone number
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -47,28 +47,43 @@ export async function PUT(
 
   const { id } = await params;
   const body = await request.json();
-  let phone = (body.phone || "").replace(/[\s\-()]/g, "");
-  if (!phone.startsWith("+")) phone = `+${phone}`;
 
-  if (!/^\+\d{10,15}$/.test(phone)) {
-    return NextResponse.json({ error: "Número de teléfono inválido" }, { status: 400 });
+  let player: typeof import("@/lib/db/schema").players.$inferSelect | null = null;
+
+  // Option 1: add by playerId (from autocomplete)
+  if (body.playerId) {
+    const { getPlayerByAuthId } = await import("@/lib/db/queries");
+    player = await getPlayerByAuthId(body.playerId);
+    if (!player) {
+      return NextResponse.json({ error: "Jugador no encontrado" }, { status: 404 });
+    }
   }
+  // Option 2: add by phone number
+  else if (body.phone) {
+    let phone = (body.phone || "").replace(/[\s\-()]/g, "");
+    if (!phone.startsWith("+")) phone = `+${phone}`;
 
-  // Find or create the player
-  let player = await getPlayerByPhone(phone);
-  if (!player) {
-    // Create a stub player with just the phone
-    const [newPlayer] = await db
-      .insert(players)
-      .values({
-        phone,
-        name: "",
-        positions: [],
-        dominantFoot: "right",
-        selfSkills: {},
-      })
-      .returning();
-    player = newPlayer;
+    if (!/^\+\d{10,15}$/.test(phone)) {
+      return NextResponse.json({ error: "Número de teléfono inválido" }, { status: 400 });
+    }
+
+    player = await getPlayerByPhone(phone);
+    if (!player) {
+      // Create a stub player with just the phone
+      const [newPlayer] = await db
+        .insert(players)
+        .values({
+          phone,
+          name: "",
+          positions: [],
+          dominantFoot: "right",
+          selfSkills: {},
+        })
+        .returning();
+      player = newPlayer;
+    }
+  } else {
+    return NextResponse.json({ error: "Se requiere playerId o phone" }, { status: 400 });
   }
 
   // Check if already a member
@@ -82,7 +97,7 @@ export async function PUT(
 
   await joinClub(id, player.id);
   return NextResponse.json(
-    { success: true, playerName: player.name || phone },
+    { success: true, playerName: player.name || player.phone },
     { status: 201 }
   );
 }
