@@ -19,6 +19,11 @@ interface PlayerData {
   ratingCount?: number;
 }
 
+interface Club {
+  id: string;
+  name: string;
+}
+
 function getScore(player: PlayerData): number | null {
   return player.combinedScore ?? null;
 }
@@ -28,10 +33,31 @@ export default function PlayersPage() {
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [loading, setLoading] = useState(true);
   const [posFilter, setPosFilter] = useState<Position | null>(null);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
+  const [clubsLoaded, setClubsLoaded] = useState(false);
 
-  const fetchPlayers = useCallback((q: string) => {
+  // Fetch user's clubs on mount
+  useEffect(() => {
+    fetch("/api/groups?my=true")
+      .then((r) => r.json())
+      .then((data) => {
+        const myClubs = Array.isArray(data) ? data : [];
+        setClubs(myClubs);
+        if (myClubs.length > 0) {
+          setSelectedClubId(myClubs[0].id);
+        }
+        setClubsLoaded(true);
+      })
+      .catch(() => setClubsLoaded(true));
+  }, []);
+
+  const fetchPlayers = useCallback((q: string, groupId: string | null) => {
     setLoading(true);
-    fetch(`/api/players?q=${encodeURIComponent(q)}`)
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (groupId) params.set("groupId", groupId);
+    fetch(`/api/players?${params}`)
       .then((r) => r.json())
       .then((data) => {
         setPlayers(Array.isArray(data) ? data : []);
@@ -40,14 +66,12 @@ export default function PlayersPage() {
       .catch(() => setLoading(false));
   }, []);
 
+  // Fetch players when club selection or search changes
   useEffect(() => {
-    fetchPlayers("");
-  }, [fetchPlayers]);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => fetchPlayers(search), 300);
+    if (!clubsLoaded) return;
+    const timeout = setTimeout(() => fetchPlayers(search, selectedClubId), 300);
     return () => clearTimeout(timeout);
-  }, [search, fetchPlayers]);
+  }, [search, selectedClubId, clubsLoaded, fetchPlayers]);
 
   // Filter by position and sort by score desc
   const filteredPlayers = useMemo(() => {
@@ -65,6 +89,24 @@ export default function PlayersPage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Jugadores</h1>
+
+      {/* Club filter tabs */}
+      {clubs.length > 1 && (
+        <div className="flex gap-1.5 flex-wrap">
+          {clubs.map((club) => (
+            <Badge
+              key={club.id}
+              variant={selectedClubId === club.id ? "default" : "outline"}
+              className={`cursor-pointer text-xs min-h-[36px] px-3 py-1.5 ${selectedClubId === club.id ? "bg-green-600" : ""}`}
+              onClick={() => setSelectedClubId(club.id)}
+              role="button"
+              aria-pressed={selectedClubId === club.id}
+            >
+              {club.name}
+            </Badge>
+          ))}
+        </div>
+      )}
 
       <Input
         placeholder="Buscar jugadores..."
@@ -112,7 +154,7 @@ export default function PlayersPage() {
             <p className="text-sm">
               {search || posFilter
                 ? "Intenta con otros filtros"
-                : "Únete a un grupo para ver jugadores"}
+                : "Únete a un club para ver jugadores"}
             </p>
           </div>
         ) : (
