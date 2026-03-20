@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { DetailSkeleton } from "@/components/skeleton-cards";
 import { formatMatchDateWithRange } from "@/lib/format";
-import { CircleDot, Lock, Play, CheckCircle, UserPlus, Trophy, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { CircleDot, Lock, Play, CheckCircle, UserPlus, Trophy, ChevronRight, Plus } from "lucide-react";
 
 interface ClubDetail {
   group: {
@@ -30,6 +31,7 @@ interface ClubDetail {
   }[];
   isMember: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 interface MatchData {
@@ -58,6 +60,8 @@ export default function ClubDetailPage() {
   const [matches, setMatches] = useState<MatchData[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [addPhone, setAddPhone] = useState("");
+  const [addingPlayer, setAddingPlayer] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -111,6 +115,30 @@ export default function ClubDetailPage() {
     }
   }
 
+  async function handleAddPlayer(e: React.FormEvent) {
+    e.preventDefault();
+    if (!addPhone.trim()) return;
+    setAddingPlayer(true);
+    try {
+      const res = await fetch(`/api/groups/${id}/members`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: addPhone.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success(`Jugador ${data.playerName} agregado al club`);
+      setAddPhone("");
+      // Reload club data
+      const updated = await fetch(`/api/groups/${id}`).then((r) => r.json());
+      setClub(updated);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+    } finally {
+      setAddingPlayer(false);
+    }
+  }
+
   if (loading) {
     return <DetailSkeleton />;
   }
@@ -123,7 +151,7 @@ export default function ClubDetailPage() {
     );
   }
 
-  const { group, members, isMember, isAdmin } = club;
+  const { group, members, isMember, isAdmin, isSuperAdmin } = club;
 
   const STATUS_ICONS: Record<string, React.ReactNode> = {
     open: <CircleDot className="h-3 w-3" />,
@@ -253,6 +281,26 @@ export default function ClubDetailPage() {
           <CardTitle className="text-lg">Miembros</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
+          {/* Super admin: add player by phone */}
+          {isSuperAdmin && (
+            <form onSubmit={handleAddPlayer} className="flex gap-2 mb-4">
+              <Input
+                placeholder="+56912345678"
+                value={addPhone}
+                onChange={(e) => setAddPhone(e.target.value)}
+                className="flex-1"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-green-600 hover:bg-green-700"
+                disabled={addingPlayer || !addPhone.trim()}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                {addingPlayer ? "..." : "Agregar"}
+              </Button>
+            </form>
+          )}
           {members.map(({ player, role }) => (
             <Link key={player.id} href={`/players/${player.id}`}>
               <div className="flex items-center gap-3 py-2">

@@ -35,6 +35,7 @@ export async function GET(
     members,
     isMember,
     isAdmin,
+    isSuperAdmin: session.player.isAdmin,
   });
 }
 
