@@ -48,15 +48,9 @@ export function MatchStatusBadge({
   if (enrolled >= maxPlayers) {
     label = "Completo";
     colorClass = "bg-green-600 text-white";
-  } else if (enrolled >= maxPlayers * 0.8) {
-    label = `Quedan ${remaining} lugares`;
-    colorClass = "bg-yellow-600 text-white";
-  } else if (enrolled >= maxPlayers * 0.6) {
-    label = `Faltan ${remaining} jugadores`;
-    colorClass = "bg-orange-600 text-white";
   } else {
-    label = `En riesgo (${enrolled}/${maxPlayers})`;
-    colorClass = "bg-red-600 text-white";
+    label = `Inscritos ${enrolled}/${maxPlayers}`;
+    colorClass = "bg-muted text-muted-foreground";
   }
 
   return (
