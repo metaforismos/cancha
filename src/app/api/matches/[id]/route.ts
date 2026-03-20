@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getMatchWithEnrollments, isGroupAdmin } from "@/lib/db/queries";
+import { getMatchWithEnrollments, isGroupAdmin, getPlayerAvgSkills } from "@/lib/db/queries";
 import { db } from "@/lib/db";
 import { matches } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -26,10 +26,14 @@ export async function GET(
     session.player.isAdmin ||
     (await isGroupAdmin(result.match.groupId, session.player.id));
 
+  const avgSkills = await getPlayerAvgSkills(session.player.id);
+  const ratingCount = avgSkills?.ratingCount ?? 0;
+
   return NextResponse.json({
     ...result,
     currentUserId: session.player.id,
     canEdit,
+    ratingCount,
   });
 }
 

@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MATCH_FORMATS } from "@/types";
 import type { MatchFormat } from "@/types";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
 
 interface ClubOption {
   group: { id: string; name: string };
@@ -69,7 +70,7 @@ export default function NewMatchPage() {
       toast.success("Partido creado!");
       router.push(`/matches/${id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Algo salio mal");
+      toast.error(err instanceof Error ? err.message : "Algo salió mal");
     } finally {
       setLoading(false);
     }
@@ -77,7 +78,7 @@ export default function NewMatchPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Crear partido</h1>
+      <PageHeader title="Crear partido" />
 
       <Card>
         <CardContent className="pt-6">
@@ -143,7 +144,7 @@ export default function NewMatchPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Ubicacion</label>
+              <label className="text-sm font-medium">Ubicación</label>
               <Input
                 placeholder="Nombre del lugar"
                 value={location}

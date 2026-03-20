@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAction } from "@/components/floating-action";
+import { ClubCardSkeleton } from "@/components/skeleton-cards";
 
 interface ClubData {
   group: {
@@ -66,11 +67,13 @@ export default function ClubsPage() {
         <div className="flex gap-1.5 flex-wrap">
           <Badge
             variant={countryFilter === null ? "default" : "outline"}
-            className={`cursor-pointer text-xs ${countryFilter === null ? "bg-green-600" : ""}`}
+            className={`cursor-pointer text-xs min-h-[36px] px-3 py-1.5 ${countryFilter === null ? "bg-green-600" : ""}`}
             onClick={() => {
               setCountryFilter(null);
               setCityFilter(null);
             }}
+            role="button"
+            aria-pressed={countryFilter === null}
           >
             Todos
           </Badge>
@@ -78,11 +81,13 @@ export default function ClubsPage() {
             <Badge
               key={c}
               variant={countryFilter === c ? "default" : "outline"}
-              className={`cursor-pointer text-xs ${countryFilter === c ? "bg-green-600" : ""}`}
+              className={`cursor-pointer text-xs min-h-[36px] px-3 py-1.5 ${countryFilter === c ? "bg-green-600" : ""}`}
               onClick={() => {
                 setCountryFilter(countryFilter === c ? null : c);
                 setCityFilter(null);
               }}
+              role="button"
+              aria-pressed={countryFilter === c}
             >
               {c}
             </Badge>
@@ -97,8 +102,10 @@ export default function ClubsPage() {
             <Badge
               key={c}
               variant={cityFilter === c ? "default" : "outline"}
-              className={`cursor-pointer text-xs ${cityFilter === c ? "bg-green-600" : ""}`}
+              className={`cursor-pointer text-xs min-h-[36px] px-3 py-1.5 ${cityFilter === c ? "bg-green-600" : ""}`}
               onClick={() => setCityFilter(cityFilter === c ? null : c)}
+              role="button"
+              aria-pressed={cityFilter === c}
             >
               {c}
             </Badge>
@@ -107,13 +114,15 @@ export default function ClubsPage() {
       )}
 
       {loading ? (
-        <div className="text-center text-muted-foreground py-12">
-          <p>Cargando...</p>
+        <div className="space-y-3">
+          <ClubCardSkeleton />
+          <ClubCardSkeleton />
+          <ClubCardSkeleton />
         </div>
       ) : clubs.length === 0 ? (
         <div className="text-center text-muted-foreground py-8">
           <div className="text-4xl mb-3">&#127941;</div>
-          <p className="font-medium">Sin clubes aun</p>
+          <p className="font-medium">Sin clubes aún</p>
           <p className="text-sm">Crea el primero y convoca a tus amigos</p>
         </div>
       ) : (

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { POSITIONS, POSITION_LABELS } from "@/types";
+import { PlayerCardSkeleton } from "@/components/skeleton-cards";
 import type { Position } from "@/types";
 
 interface PlayerData {
@@ -75,8 +76,10 @@ export default function PlayersPage() {
       <div className="flex gap-1.5 flex-wrap">
         <Badge
           variant={posFilter === null ? "default" : "outline"}
-          className={`cursor-pointer text-xs ${posFilter === null ? "bg-green-600" : ""}`}
+          className={`cursor-pointer text-xs min-h-[36px] px-3 py-1.5 ${posFilter === null ? "bg-green-600" : ""}`}
           onClick={() => setPosFilter(null)}
+          role="button"
+          aria-pressed={posFilter === null}
         >
           Todos
         </Badge>
@@ -84,8 +87,10 @@ export default function PlayersPage() {
           <Badge
             key={pos}
             variant={posFilter === pos ? "default" : "outline"}
-            className={`cursor-pointer text-xs ${posFilter === pos ? "bg-green-600" : ""}`}
+            className={`cursor-pointer text-xs min-h-[36px] px-3 py-1.5 ${posFilter === pos ? "bg-green-600" : ""}`}
             onClick={() => setPosFilter(posFilter === pos ? null : pos)}
+            role="button"
+            aria-pressed={posFilter === pos}
           >
             {POSITION_LABELS[pos]}
           </Badge>
@@ -94,8 +99,12 @@ export default function PlayersPage() {
 
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center text-muted-foreground py-12">
-            <p>Cargando...</p>
+          <div className="space-y-2">
+            <PlayerCardSkeleton />
+            <PlayerCardSkeleton />
+            <PlayerCardSkeleton />
+            <PlayerCardSkeleton />
+            <PlayerCardSkeleton />
           </div>
         ) : filteredPlayers.length === 0 ? (
           <div className="text-center text-muted-foreground py-12">

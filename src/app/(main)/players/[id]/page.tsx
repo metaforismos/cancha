@@ -10,6 +10,8 @@ import { SKILLS, POSITION_LABELS } from "@/types";
 import type { Position } from "@/types";
 import Link from "next/link";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
+import { DetailSkeleton } from "@/components/skeleton-cards";
 
 const footLabels: Record<string, string> = {
   left: "Pie izquierdo",
@@ -97,9 +99,7 @@ export default function PlayerProfilePage() {
   }
 
   if (loading || !data) {
-    return (
-      <div className="py-12 text-center text-muted-foreground">Cargando...</div>
-    );
+    return <DetailSkeleton />;
   }
 
   const { player, avgSkills, isMe, canEdit, individualRatings } = data;
@@ -107,6 +107,7 @@ export default function PlayerProfilePage() {
 
   return (
     <div className="space-y-4">
+      <PageHeader title={player.name} />
       <Card>
         <CardContent className="flex flex-col items-center gap-4 pt-6">
           <Avatar className="h-20 w-20">

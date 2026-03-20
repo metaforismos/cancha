@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PitchView } from "@/components/lineup-view";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
 
 interface LineupData {
   id: string;
@@ -78,7 +79,7 @@ export default function LineupPage() {
   if (!lineup) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Alineación</h1>
+        <PageHeader title="Alineación" />
 
         {/* Mode selector */}
         <div className="flex gap-2">
@@ -118,8 +119,7 @@ export default function LineupPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Alineación</h1>
+      <PageHeader title="Alineación">
         <Button
           size="sm"
           variant="outline"
@@ -128,7 +128,7 @@ export default function LineupPage() {
         >
           {generating ? "..." : "Regenerar"}
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Mode selector for regeneration */}
       <div className="flex gap-2">

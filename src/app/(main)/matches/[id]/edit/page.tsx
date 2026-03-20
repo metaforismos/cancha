@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MATCH_FORMATS } from "@/types";
 import type { MatchFormat } from "@/types";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
 
 const STATUS_OPTIONS = [
   { value: "open", label: "Abierto" },
@@ -79,7 +80,7 @@ export default function EditMatchPage() {
       toast.success("Partido actualizado!");
       router.push(`/matches/${id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Algo salio mal");
+      toast.error(err instanceof Error ? err.message : "Algo salió mal");
     } finally {
       setLoading(false);
     }
@@ -95,7 +96,7 @@ export default function EditMatchPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Editar partido</h1>
+      <PageHeader title="Editar partido" />
 
       <Card>
         <CardContent className="pt-6">

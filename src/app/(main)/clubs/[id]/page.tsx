@@ -9,6 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FloatingAction } from "@/components/floating-action";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
+import { DetailSkeleton } from "@/components/skeleton-cards";
+import { formatMatchDate } from "@/lib/format";
+import { CircleDot, Lock, Play, CheckCircle } from "lucide-react";
 
 interface ClubDetail {
   group: {
@@ -105,11 +109,7 @@ export default function ClubDetailPage() {
   }
 
   if (loading) {
-    return (
-      <div className="text-center text-muted-foreground py-12">
-        <p>Cargando...</p>
-      </div>
-    );
+    return <DetailSkeleton />;
   }
 
   if (!club) {
@@ -122,8 +122,16 @@ export default function ClubDetailPage() {
 
   const { group, members, isMember, isAdmin } = club;
 
+  const STATUS_ICONS: Record<string, React.ReactNode> = {
+    open: <CircleDot className="h-3 w-3" />,
+    closed: <Lock className="h-3 w-3" />,
+    in_progress: <Play className="h-3 w-3" />,
+    completed: <CheckCircle className="h-3 w-3" />,
+  };
+
   return (
     <div className="space-y-4 pb-20">
+      <PageHeader title={group.name} />
       {/* Club header */}
       <Card>
         <CardContent className="pt-6">
@@ -176,7 +184,7 @@ export default function ClubDetailPage() {
                 onClick={handleJoin}
                 disabled={actionLoading}
               >
-                {actionLoading ? "..." : "Unirme al club"}
+                {actionLoading ? "Uniéndome..." : "Unirme al club"}
               </Button>
             )}
           </div>
@@ -224,7 +232,7 @@ export default function ClubDetailPage() {
         <CardContent>
           {matches.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              Sin partidos aun
+              Sin partidos aún
             </p>
           ) : (
             <div className="space-y-2">
@@ -234,27 +242,22 @@ export default function ClubDetailPage() {
                     <div>
                       <p className="font-medium text-sm">{match.format}</p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(match.date).toLocaleDateString("es-ES", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatMatchDate(match.date)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {match.location}
                       </p>
                     </div>
                     <Badge
-                      className={
+                      className={`flex items-center gap-1 ${
                         match.status === "open"
                           ? "bg-green-600"
                           : match.status === "completed"
                             ? "bg-muted"
                             : "bg-yellow-600"
-                      }
+                      }`}
                     >
+                      {STATUS_ICONS[match.status]}
                       {STATUS_LABELS[match.status] || match.status}
                     </Badge>
                   </div>

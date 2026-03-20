@@ -138,6 +138,55 @@ export async function getPlayerAvgSkills(playerId: string) {
   };
 }
 
+/**
+ * Batch version of getPlayerAvgSkills — single query for all players.
+ * Returns a Map keyed by playerId.
+ */
+export async function getPlayerAvgSkillsBatch(playerIds: string[]) {
+  if (playerIds.length === 0) return new Map<string, { skills: Record<string, number>; ratingCount: number; overall: number }>();
+
+  const ratings = await db
+    .select()
+    .from(playerRatings)
+    .where(sql`${playerRatings.ratedId} = ANY(${playerIds})`);
+
+  // Group by ratedId
+  const byPlayer = new Map<string, typeof ratings>();
+  for (const r of ratings) {
+    const existing = byPlayer.get(r.ratedId) ?? [];
+    existing.push(r);
+    byPlayer.set(r.ratedId, existing);
+  }
+
+  const result = new Map<string, { skills: Record<string, number>; ratingCount: number; overall: number }>();
+
+  for (const [playerId, playerRatings_] of byPlayer) {
+    const avgSkills: Record<string, number> = {};
+    for (const skill of SKILLS) {
+      const values = playerRatings_
+        .map((r) => (r.skills as Record<string, number>)[skill])
+        .filter((v) => v != null);
+      avgSkills[skill] =
+        values.length > 0
+          ? Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10
+          : 0;
+    }
+
+    result.set(playerId, {
+      skills: avgSkills,
+      ratingCount: playerRatings_.length,
+      overall:
+        Math.round(
+          (Object.values(avgSkills).reduce((a, b) => a + b, 0) /
+            Object.values(avgSkills).length) *
+            10
+        ) / 10,
+    });
+  }
+
+  return result;
+}
+
 export async function getRatingByPair(raterId: string, ratedId: string) {
   const [rating] = await db
     .select()

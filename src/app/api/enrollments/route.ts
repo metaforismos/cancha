@@ -7,7 +7,7 @@ import {
   getOrCreateDefaultGroup,
   isPlayerInClub,
 } from "@/lib/db/queries";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
   const session = await getSession();
@@ -88,7 +88,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const status = "enrolled";
+  // Enforce maxPlayers — waitlist if full
+  let status: "enrolled" | "waitlisted" = "enrolled";
+  if (match.maxPlayers && match.maxPlayers < 999) {
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(matchEnrollments)
+      .where(
+        and(
+          eq(matchEnrollments.matchId, matchId),
+          eq(matchEnrollments.status, "enrolled")
+        )
+      );
+    if ((countResult?.count ?? 0) >= match.maxPlayers) {
+      status = "waitlisted";
+    }
+  }
 
   if (existing) {
     await db

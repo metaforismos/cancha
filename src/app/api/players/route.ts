@@ -4,7 +4,7 @@ import {
   upsertPlayer,
   getPlayerByAuthId,
   searchPlayers,
-  getPlayerAvgSkills,
+  getPlayerAvgSkillsBatch,
 } from "@/lib/db/queries";
 import { playerProfileSchema } from "@/lib/validators";
 
@@ -23,42 +23,43 @@ export async function GET(request: NextRequest) {
   // Enrich each player with combined average (self + peer ratings)
   const normalized = results.map((r: { player?: unknown }) =>
     "player" in r ? (r as { player: Record<string, unknown> }).player : r
-  );
+  ) as Record<string, unknown>[];
 
-  const enriched = await Promise.all(
-    normalized.map(async (player: Record<string, unknown>) => {
-      const peerAvg = await getPlayerAvgSkills(player.id as string);
-      const selfSkills = player.selfSkills as Record<string, number> | undefined;
+  // Batch fetch all peer ratings in a single query (fixes N+1)
+  const playerIds = normalized.map((p) => p.id as string);
+  const peerAvgMap = await getPlayerAvgSkillsBatch(playerIds);
 
-      // Compute self overall
-      let selfOverall: number | null = null;
-      if (selfSkills && Object.keys(selfSkills).length > 0) {
-        const vals = Object.values(selfSkills);
-        selfOverall = vals.reduce((a, b) => a + b, 0) / vals.length;
-      }
+  const enriched = normalized.map((player) => {
+    const peerAvg = peerAvgMap.get(player.id as string) ?? null;
+    const selfSkills = player.selfSkills as Record<string, number> | undefined;
 
-      // Combined average: treat self-rating and each peer rating equally
-      let combinedScore: number | null = null;
-      if (peerAvg && selfOverall != null) {
-        // Average of self overall + peer overall (peer is already avg of N raters)
-        const totalRaters = peerAvg.ratingCount + 1; // +1 for self
-        combinedScore =
-          Math.round(
-            ((selfOverall + peerAvg.overall * peerAvg.ratingCount) / totalRaters) * 10
-          ) / 10;
-      } else if (peerAvg) {
-        combinedScore = peerAvg.overall;
-      } else if (selfOverall != null) {
-        combinedScore = Math.round(selfOverall * 10) / 10;
-      }
+    // Compute self overall
+    let selfOverall: number | null = null;
+    if (selfSkills && Object.keys(selfSkills).length > 0) {
+      const vals = Object.values(selfSkills);
+      selfOverall = vals.reduce((a, b) => a + b, 0) / vals.length;
+    }
 
-      return {
-        ...player,
-        combinedScore,
-        ratingCount: (peerAvg?.ratingCount ?? 0) + (selfOverall != null ? 1 : 0),
-      };
-    })
-  );
+    // Combined average: treat self-rating and each peer rating equally
+    let combinedScore: number | null = null;
+    if (peerAvg && selfOverall != null) {
+      const totalRaters = peerAvg.ratingCount + 1;
+      combinedScore =
+        Math.round(
+          ((selfOverall + peerAvg.overall * peerAvg.ratingCount) / totalRaters) * 10
+        ) / 10;
+    } else if (peerAvg) {
+      combinedScore = peerAvg.overall;
+    } else if (selfOverall != null) {
+      combinedScore = Math.round(selfOverall * 10) / 10;
+    }
+
+    return {
+      ...player,
+      combinedScore,
+      ratingCount: (peerAvg?.ratingCount ?? 0) + (selfOverall != null ? 1 : 0),
+    };
+  });
 
   return NextResponse.json(enriched);
 }

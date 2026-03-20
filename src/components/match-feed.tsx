@@ -5,6 +5,9 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAction } from "@/components/floating-action";
+import { MatchCardSkeleton } from "@/components/skeleton-cards";
+import { formatMatchDate } from "@/lib/format";
+import { CircleDot, Lock, Play, CheckCircle } from "lucide-react";
 
 interface MatchData {
   id: string;
@@ -12,6 +15,7 @@ interface MatchData {
   location: string;
   format: string;
   status: string;
+  maxPlayers?: number | null;
   enrolledCount?: number;
 }
 
@@ -20,6 +24,13 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Cerrado",
   in_progress: "En juego",
   completed: "Finalizado",
+};
+
+const STATUS_ICONS: Record<string, React.ReactNode> = {
+  open: <CircleDot className="h-3 w-3" />,
+  closed: <Lock className="h-3 w-3" />,
+  in_progress: <Play className="h-3 w-3" />,
+  completed: <CheckCircle className="h-3 w-3" />,
 };
 
 export function MatchFeed() {
@@ -38,8 +49,10 @@ export function MatchFeed() {
 
   if (loading) {
     return (
-      <div className="text-center text-muted-foreground py-12">
-        <p>Cargando...</p>
+      <div className="space-y-4 pb-20">
+        <MatchCardSkeleton />
+        <MatchCardSkeleton />
+        <MatchCardSkeleton />
       </div>
     );
   }
@@ -72,29 +85,25 @@ function MatchCard({ match }: { match: MatchData }) {
     completed: "bg-muted",
   };
 
+  const enrolled = match.enrolledCount ?? 0;
+  const maxPlayers = match.maxPlayers && match.maxPlayers < 999 ? match.maxPlayers : null;
+
   return (
     <Card className="mt-3">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{match.format}</CardTitle>
-          <Badge className={statusColors[match.status] || "bg-muted"}>
+          <Badge className={`${statusColors[match.status] || "bg-muted"} flex items-center gap-1`}>
+            {STATUS_ICONS[match.status]}
             {STATUS_LABELS[match.status] || match.status}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-1 text-sm text-muted-foreground">
-        <p>
-          {new Date(match.date).toLocaleDateString("es-ES", {
-            weekday: "short",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </p>
+        <p>{formatMatchDate(match.date)}</p>
         <p>{match.location}</p>
         <p>
-          {match.enrolledCount ?? 0} inscritos
+          {enrolled}{maxPlayers ? `/${maxPlayers}` : ""} inscritos
         </p>
       </CardContent>
     </Card>

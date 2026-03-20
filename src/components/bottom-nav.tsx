@@ -92,7 +92,10 @@ const NAV_ITEMS = [
   },
 ];
 
-const BASE_MENU_ITEMS: { label: string; href: string }[] = [];
+const BASE_MENU_ITEMS: { label: string; href: string }[] = [
+  { label: "Mi perfil", href: "/profile" },
+  { label: "Mis clubes", href: "/clubs" },
+];
 
 const ADMIN_MENU_ITEMS = [
   { label: "Crear jugador", href: "/admin/players/new" },
@@ -149,7 +152,7 @@ export function BottomNav() {
       >
         <div className="flex items-center justify-between p-4 border-b border-border">
           <span className="font-semibold text-base">Menú</span>
-          <button onClick={() => setMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => setMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Cerrar menú">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6 6 18" /><path d="m6 6 12 12" />
             </svg>
@@ -214,6 +217,8 @@ export function BottomNav() {
 
           <button
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Abrir menú"
+            aria-expanded={menuOpen}
             className={cn(
               "flex flex-col items-center gap-1 text-xs transition-colors",
               menuOpen

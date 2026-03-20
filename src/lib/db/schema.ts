@@ -9,6 +9,7 @@ import {
   boolean,
   pgEnum,
   uniqueIndex,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const dominantFootEnum = pgEnum("dominant_foot", [
@@ -99,6 +100,7 @@ export const playerRatings = pgTable(
   },
   (table) => [
     uniqueIndex("unique_rater_rated").on(table.raterId, table.ratedId),
+    index("idx_player_ratings_rated_id").on(table.ratedId),
   ]
 );
 
@@ -171,6 +173,8 @@ export const matchEnrollments = pgTable(
   },
   (table) => [
     uniqueIndex("unique_match_player").on(table.matchId, table.playerId),
+    index("idx_match_enrollments_match_id").on(table.matchId),
+    index("idx_match_enrollments_player_id").on(table.playerId),
   ]
 );
 

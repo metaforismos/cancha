@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { LocationPicker } from "@/components/location-picker";
+import { PageHeader } from "@/components/page-header";
 
 export default function EditClubPage() {
   const { id } = useParams<{ id: string }>();
@@ -92,7 +93,7 @@ export default function EditClubPage() {
       toast.success("Club actualizado!");
       router.push(`/clubs/${id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Algo salio mal");
+      toast.error(err instanceof Error ? err.message : "Algo salió mal");
     } finally {
       setLoading(false);
     }
@@ -108,7 +109,7 @@ export default function EditClubPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Editar club</h1>
+      <PageHeader title="Editar club" />
 
       <Card>
         <CardContent className="pt-6">
@@ -171,7 +172,7 @@ export default function EditClubPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Descripcion (opcional)
+                Descripción (opcional)
               </label>
               <Input
                 value={description}
