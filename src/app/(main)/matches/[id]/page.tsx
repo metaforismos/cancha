@@ -151,6 +151,8 @@ export default function MatchDetailPage() {
       date: match.date,
       location: match.location,
       format: match.format,
+      teamAName: match.teamAName,
+      teamBName: match.teamBName,
       enrolledCount: enrolled.length,
       maxPlayers: match.maxPlayers,
     });

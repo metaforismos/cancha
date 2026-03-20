@@ -12,8 +12,8 @@ export const authLimiter = new RateLimiterMemory({
   duration: 60,
 });
 
-// Limiter para Claude API: 20 por hora global
+// Limiter para Claude API: sin límite estricto (solo protección anti-abuse)
 export const claudeLimiter = new RateLimiterMemory({
-  points: 20,
+  points: 1000,
   duration: 3600,
 });

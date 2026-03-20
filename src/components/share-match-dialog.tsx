@@ -21,6 +21,8 @@ interface ShareMatchDialogProps {
     date: string;
     location: string;
     format: string;
+    teamAName?: string | null;
+    teamBName?: string | null;
     enrolledCount?: number;
     maxPlayers?: number | null;
   };

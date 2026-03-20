@@ -39,6 +39,8 @@ export default function NewMatchPage() {
     date: string;
     location: string;
     format: string;
+    teamAName?: string | null;
+    teamBName?: string | null;
   } | null>(null);
 
   useEffect(() => {
@@ -94,6 +96,8 @@ export default function NewMatchPage() {
         date: matchDate.toISOString(),
         location,
         format,
+        teamAName: teamAName || null,
+        teamBName: teamBName || null,
       });
       setShowShareDialog(true);
     } catch (err) {
