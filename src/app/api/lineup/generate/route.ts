@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { matchId, lockedPlayers } = await request.json();
+  const { matchId, lockedPlayers, mode } = await request.json();
 
   if (!matchId) {
     return NextResponse.json(
@@ -128,13 +128,26 @@ export async function POST(request: NextRequest) {
   );
 
   // Generate lineup via Claude
+  const lineupMode = mode === "single" ? "single" : "both";
   const result = await generateLineup({
     format: match.format,
     players: playerData,
+    mode: lineupMode,
     lockedPlayers,
   });
 
   // Save lineup
+  const teamB = result.team_b
+    ? {
+        formation: result.team_b.formation,
+        players: result.team_b.players.map((p) => ({
+          playerId: p.id,
+          name: p.name,
+          position: p.position,
+        })),
+      }
+    : { formation: "", players: [] };
+
   const [lineup] = await db
     .insert(lineups)
     .values({
@@ -147,14 +160,7 @@ export async function POST(request: NextRequest) {
           position: p.position,
         })),
       },
-      teamB: {
-        formation: result.team_b.formation,
-        players: result.team_b.players.map((p) => ({
-          playerId: p.id,
-          name: p.name,
-          position: p.position,
-        })),
-      },
+      teamB: teamB,
       bench: result.bench.map((p) => ({ playerId: p.id, name: p.name })),
       justification: result.justification,
     })

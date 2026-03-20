@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { FORMAT_PLAYER_COUNTS, MATCH_FORMATS } from "@/types";
+import { MATCH_FORMATS } from "@/types";
 import type { MatchFormat } from "@/types";
 import { toast } from "sonner";
 
@@ -37,8 +37,6 @@ export default function NewMatchPage() {
       .catch(() => {});
   }, []);
 
-  const maxPlayers = FORMAT_PLAYER_COUNTS[format];
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!date || !time || !location) return;
@@ -57,7 +55,6 @@ export default function NewMatchPage() {
           location,
           locationUrl: locationUrl || undefined,
           format,
-          maxPlayers,
           enrollmentDeadline: deadline.toISOString(),
           groupId: clubId || undefined,
         }),
@@ -120,7 +117,7 @@ export default function NewMatchPage() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                {maxPlayers} jugadores max.
+                Sin limite de inscritos
               </p>
             </div>
 

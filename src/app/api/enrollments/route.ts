@@ -3,7 +3,6 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { matchEnrollments, matches } from "@/lib/db/schema";
 import {
-  getEnrollmentCount,
   getPlayerAvgSkills,
   getOrCreateDefaultGroup,
   isPlayerInClub,
@@ -89,9 +88,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Determine status
-  const enrolledCount = await getEnrollmentCount(matchId);
-  const status = enrolledCount >= match.maxPlayers ? "waitlisted" : "enrolled";
+  const status = "enrolled";
 
   if (existing) {
     await db
@@ -133,31 +130,6 @@ export async function DELETE(request: NextRequest) {
         eq(matchEnrollments.playerId, session.player.id)
       )
     );
-
-  // Auto-promote first waitlisted player
-  const [nextWaitlisted] = await db
-    .select()
-    .from(matchEnrollments)
-    .where(
-      and(
-        eq(matchEnrollments.matchId, matchId),
-        eq(matchEnrollments.status, "waitlisted")
-      )
-    )
-    .orderBy(matchEnrollments.joinedAt)
-    .limit(1);
-
-  if (nextWaitlisted) {
-    await db
-      .update(matchEnrollments)
-      .set({ status: "enrolled" })
-      .where(
-        and(
-          eq(matchEnrollments.matchId, matchId),
-          eq(matchEnrollments.playerId, nextWaitlisted.playerId)
-        )
-      );
-  }
 
   return NextResponse.json({ success: true });
 }

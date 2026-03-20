@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       location: parsed.data.location,
       locationUrl: parsed.data.locationUrl || null,
       format: parsed.data.format,
-      maxPlayers: parsed.data.maxPlayers,
+      maxPlayers: parsed.data.maxPlayers ?? 999,
       enrollmentDeadline: new Date(parsed.data.enrollmentDeadline),
       createdBy: session.player.id,
     })

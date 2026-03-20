@@ -12,7 +12,6 @@ interface MatchData {
   location: string;
   format: string;
   status: string;
-  maxPlayers: number;
   enrolledCount?: number;
 }
 
@@ -99,7 +98,7 @@ function MatchCard({ match }: { match: MatchData }) {
         </p>
         <p>{match.location}</p>
         <p>
-          {match.enrolledCount ?? 0}/{match.maxPlayers} jugadores
+          {match.enrolledCount ?? 0} inscritos
         </p>
       </CardContent>
     </Card>

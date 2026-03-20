@@ -10,6 +10,7 @@ export interface PlayerForLineup {
 export interface LineupRequest {
   format: string;
   players: PlayerForLineup[];
+  mode?: "both" | "single";
   lockedPlayers?: {
     team_a?: string[];
     team_b?: string[];

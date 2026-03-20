@@ -33,7 +33,7 @@ export const matchCreateSchema = z.object({
   location: z.string().min(1),
   locationUrl: z.string().url().optional().or(z.literal("")),
   format: z.enum(["5v5", "7v7", "8v8", "11v11"]),
-  maxPlayers: z.number().int().min(2),
+  maxPlayers: z.number().int().min(2).optional(),
   enrollmentDeadline: z.string().datetime(),
 });
 
@@ -57,7 +57,7 @@ export const lineupResponseSchema = z.object({
         position: z.string(),
       })
     ),
-  }),
+  }).optional(),
   bench: z.array(
     z.object({
       id: z.string(),

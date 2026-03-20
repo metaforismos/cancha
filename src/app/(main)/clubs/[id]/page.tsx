@@ -33,7 +33,6 @@ interface MatchData {
   location: string;
   format: string;
   status: string;
-  maxPlayers: number;
   enrolledCount?: number;
 }
 

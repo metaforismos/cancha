@@ -16,7 +16,6 @@ interface MatchDetail {
     location: string;
     locationUrl: string | null;
     format: string;
-    maxPlayers: number;
     status: string;
     enrollmentDeadline: string;
   };
@@ -187,7 +186,7 @@ export default function MatchDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            Inscritos ({enrolled.length}/{match.maxPlayers})
+            Inscritos ({enrolled.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">

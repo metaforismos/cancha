@@ -19,35 +19,61 @@ function buildPlayerTable(players: PlayerForLineup[]): string {
 }
 
 export async function generateLineup(request: LineupRequest) {
+  const mode = request.mode || "both";
+
   const lockInstructions = request.lockedPlayers
-    ? `\n**Locked players** (must stay on their assigned team):\n- Team A: ${request.lockedPlayers.team_a?.join(", ") || "none"}\n- Team B: ${request.lockedPlayers.team_b?.join(", ") || "none"}`
+    ? `\n**Jugadores fijos** (deben quedarse en su equipo asignado):\n- Equipo A: ${request.lockedPlayers.team_a?.join(", ") || "ninguno"}\n- Equipo B: ${request.lockedPlayers.team_b?.join(", ") || "ninguno"}`
     : "";
 
-  const prompt = `You are a soccer coach AI. Generate two balanced teams from the following player pool.
+  const prompt = mode === "single"
+    ? `Eres un director técnico de fútbol con IA. Genera UNA alineación de equipo a partir del siguiente grupo de jugadores. Responde siempre en español.
 
-**Match format**: ${request.format}
-**Players**: ${request.players.length}
+**Formato del partido**: ${request.format}
+**Jugadores**: ${request.players.length}
 
-**Player data**:
+**Datos de jugadores**:
+${buildPlayerTable(request.players)}
+
+**Instrucciones**:
+1. Crea un equipo con una formación definida.
+2. Selecciona los mejores jugadores y asigna a cada uno una posición que coincida con su perfil.
+3. Considera la cobertura de posiciones — no dejes huecos.
+4. Respeta el pie dominante para las posiciones de extremo.
+5. Los jugadores restantes van al banco de suplentes.
+6. Devuelve solo JSON estructurado, sin otro texto.
+
+**Formato de salida** (solo JSON):
+{
+  "team_a": { "formation": "4-3-3", "players": [{"id": "...", "name": "...", "position": "LW"}] },
+  "bench": [{"id": "...", "name": "..."}],
+  "balance": { "team_a_avg": 3.4, "team_b_avg": 0 },
+  "justification": "Explicación en español de las decisiones tácticas..."
+}`
+    : `Eres un director técnico de fútbol con IA. Genera dos equipos equilibrados a partir del siguiente grupo de jugadores. Responde siempre en español.
+
+**Formato del partido**: ${request.format}
+**Jugadores**: ${request.players.length}
+
+**Datos de jugadores**:
 ${buildPlayerTable(request.players)}
 ${lockInstructions}
 
-**Instructions**:
-1. Create two teams with a named formation each.
-2. Assign each player to a specific position matching their profile.
-3. Balance teams by overall average rating (max 0.3 difference).
-4. Consider position coverage — don't leave gaps.
-5. Respect dominant foot for wing positions.
-6. Assign bench players if applicable.
-7. Return structured JSON only, no other text.
+**Instrucciones**:
+1. Crea dos equipos con una formación definida cada uno.
+2. Asigna a cada jugador una posición específica que coincida con su perfil.
+3. Equilibra los equipos por rating promedio (diferencia máxima 0.3).
+4. Considera la cobertura de posiciones — no dejes huecos.
+5. Respeta el pie dominante para las posiciones de extremo.
+6. Asigna suplentes si corresponde.
+7. Devuelve solo JSON estructurado, sin otro texto.
 
-**Output format** (JSON only):
+**Formato de salida** (solo JSON):
 {
   "team_a": { "formation": "4-3-3", "players": [{"id": "...", "name": "...", "position": "LW"}] },
   "team_b": { "formation": "4-4-2", "players": [{"id": "...", "name": "...", "position": "ST"}] },
   "bench": [{"id": "...", "name": "..."}],
   "balance": { "team_a_avg": 3.4, "team_b_avg": 3.5 },
-  "justification": "..."
+  "justification": "Explicación en español del balance entre equipos..."
 }`;
 
   const message = await anthropic.messages.create({
