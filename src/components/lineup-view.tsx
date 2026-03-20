@@ -13,6 +13,8 @@ const POSITION_COORDS: Record<string, { x: number; y: number }> = {
   RCB: { x: 70, y: 72 },
   LB: { x: 12, y: 65 },
   RB: { x: 88, y: 65 },
+  LWB: { x: 15, y: 58 },
+  RWB: { x: 85, y: 58 },
   CDM: { x: 50, y: 55 },
   LCDM: { x: 35, y: 55 },
   RCDM: { x: 65, y: 55 },
@@ -20,6 +22,8 @@ const POSITION_COORDS: Record<string, { x: number; y: number }> = {
   LCM: { x: 30, y: 45 },
   RCM: { x: 70, y: 45 },
   CAM: { x: 50, y: 35 },
+  LCAM: { x: 35, y: 35 },
+  RCAM: { x: 65, y: 35 },
   LW: { x: 12, y: 25 },
   RW: { x: 88, y: 25 },
   LM: { x: 12, y: 45 },
@@ -28,10 +32,62 @@ const POSITION_COORDS: Record<string, { x: number; y: number }> = {
   LST: { x: 35, y: 15 },
   RST: { x: 65, y: 15 },
   CF: { x: 50, y: 20 },
+  LCF: { x: 35, y: 20 },
+  RCF: { x: 65, y: 20 },
 };
 
-function getCoords(position: string) {
+function getBaseCoords(position: string): { x: number; y: number } {
   return POSITION_COORDS[position] || { x: 50, y: 50 };
+}
+
+/**
+ * Resolve overlapping positions by spreading players that share the same coords.
+ * Groups by coordinate, then fans them out horizontally.
+ */
+function resolvePositions(
+  players: TeamData["players"]
+): Map<string, { x: number; y: number }> {
+  const result = new Map<string, { x: number; y: number }>();
+
+  // First pass: get base coords for everyone
+  const coordsByPlayer = players.map((p) => ({
+    playerId: p.playerId,
+    position: p.position,
+    coords: getBaseCoords(p.position),
+  }));
+
+  // Group by coordinate (using rounded coords as key to detect near-overlaps too)
+  const groups = new Map<string, typeof coordsByPlayer>();
+  for (const entry of coordsByPlayer) {
+    const key = `${Math.round(entry.coords.x)},${Math.round(entry.coords.y)}`;
+    const group = groups.get(key) || [];
+    group.push(entry);
+    groups.set(key, group);
+  }
+
+  // Spread groups with more than 1 player
+  for (const [, group] of groups) {
+    if (group.length === 1) {
+      result.set(group[0].playerId, group[0].coords);
+    } else {
+      const baseY = group[0].coords.y;
+      // Calculate spread: distribute evenly across available width
+      const spreadWidth = Math.min(20 * group.length, 76); // max spread 76% of pitch
+      const centerX = group[0].coords.x;
+      const startX = Math.max(8, centerX - spreadWidth / 2);
+      const step = group.length > 1 ? spreadWidth / (group.length - 1) : 0;
+
+      group.forEach((entry, i) => {
+        const x = group.length === 1 ? centerX : startX + step * i;
+        result.set(entry.playerId, {
+          x: Math.min(92, Math.max(8, x)),
+          y: baseY,
+        });
+      });
+    }
+  }
+
+  return result;
 }
 
 export function PitchView({
@@ -43,6 +99,8 @@ export function PitchView({
   label: string;
   color: string;
 }) {
+  const resolvedPositions = resolvePositions(team.players);
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -60,15 +118,15 @@ export function PitchView({
 
         {/* Players */}
         {team.players.map((player) => {
-          const coords = getCoords(player.position);
+          const coords = resolvedPositions.get(player.playerId) || getBaseCoords(player.position);
           return (
             <div
               key={player.playerId}
-              className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+              className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10"
               style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
             >
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md"
                 style={{ backgroundColor: color }}
               >
                 {player.name.slice(0, 2).toUpperCase()}
