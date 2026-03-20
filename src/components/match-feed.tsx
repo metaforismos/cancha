@@ -113,9 +113,9 @@ export function MatchFeed() {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {filteredMatches.map((match) => (
-            <Link key={match.id} href={`/matches/${match.id}`}>
+            <Link key={match.id} href={`/matches/${match.id}`} className="block">
               <MatchCard match={match} />
             </Link>
           ))}
