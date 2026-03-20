@@ -218,7 +218,7 @@ export default function ClubDetailPage() {
 
   return (
     <div className="space-y-5 pb-20">
-      <PageHeader title={group.name} />
+      <PageHeader title="Detalle del club" />
       {/* Club header */}
       <Card>
         <CardContent className="pt-6">
