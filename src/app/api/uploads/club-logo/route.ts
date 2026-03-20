@@ -1,19 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { randomUUID } from "crypto";
 
 const ALLOWED_TYPES = [
   "image/png",
   "image/jpeg",
   "image/jpg",
   "image/webp",
-  "image/heic",
-  "image/heif",
 ];
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 
 export async function POST(request: NextRequest) {
   const session = await getSession();
@@ -37,20 +32,16 @@ export async function POST(request: NextRequest) {
 
   if (file.size > MAX_SIZE) {
     return NextResponse.json(
-      { error: "El archivo es muy grande. Maximo 5MB." },
+      { error: "El archivo es muy grande. Máximo 2MB." },
       { status: 400 }
     );
   }
 
-  const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-  const filename = `${randomUUID()}.${ext}`;
+  // Convert to base64 data URL and store in DB directly
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const uploadDir = join(process.cwd(), "public", "uploads", "clubs");
-  const filepath = join(uploadDir, filename);
+  const base64 = Buffer.from(bytes).toString("base64");
+  const mimeType = file.type === "image/jpg" ? "image/jpeg" : file.type;
+  const dataUrl = `data:${mimeType};base64,${base64}`;
 
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(filepath, bytes);
-
-  const url = `/uploads/clubs/${filename}`;
-  return NextResponse.json({ url }, { status: 201 });
+  return NextResponse.json({ url: dataUrl }, { status: 201 });
 }
