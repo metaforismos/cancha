@@ -20,6 +20,9 @@ function buildPlayerTable(players: PlayerForLineup[]): string {
 
 export async function generateLineup(request: LineupRequest) {
   const mode = request.mode || "both";
+  const formationInstruction = request.formation
+    ? `\n**Formación solicitada**: ${request.formation} — Ambos equipos DEBEN usar esta formación exacta.`
+    : "";
 
   const lockInstructions = request.lockedPlayers
     ? `\n**Jugadores fijos** (deben quedarse en su equipo asignado):\n- Equipo A: ${request.lockedPlayers.team_a?.join(", ") || "ninguno"}\n- Equipo B: ${request.lockedPlayers.team_b?.join(", ") || "ninguno"}`
@@ -30,12 +33,13 @@ export async function generateLineup(request: LineupRequest) {
 
 **Formato del partido**: ${request.format}
 **Jugadores**: ${request.players.length}
+${formationInstruction}
 
 **Datos de jugadores**:
 ${buildPlayerTable(request.players)}
 
 **Instrucciones**:
-1. Crea un equipo con una formación definida.
+1. Crea un equipo ${request.formation ? `usando la formación ${request.formation}` : "con una formación definida"}.
 2. Selecciona los mejores jugadores y asigna a cada uno una posición que coincida con su perfil.
 3. Considera la cobertura de posiciones — no dejes huecos.
 4. Respeta el pie dominante para las posiciones de extremo.
@@ -44,7 +48,7 @@ ${buildPlayerTable(request.players)}
 
 **Formato de salida** (solo JSON):
 {
-  "team_a": { "formation": "4-3-3", "players": [{"id": "...", "name": "...", "position": "LW"}] },
+  "team_a": { "formation": "${request.formation || "4-3-3"}", "players": [{"id": "...", "name": "...", "position": "LW"}] },
   "bench": [{"id": "...", "name": "..."}],
   "balance": { "team_a_avg": 3.4, "team_b_avg": 0 },
   "justification": "Explicación en español de las decisiones tácticas..."
@@ -53,13 +57,14 @@ ${buildPlayerTable(request.players)}
 
 **Formato del partido**: ${request.format}
 **Jugadores**: ${request.players.length}
+${formationInstruction}
 
 **Datos de jugadores**:
 ${buildPlayerTable(request.players)}
 ${lockInstructions}
 
 **Instrucciones**:
-1. Crea dos equipos con una formación definida cada uno.
+1. Crea dos equipos ${request.formation ? `ambos usando la formación ${request.formation}` : "con una formación definida cada uno"}.
 2. Asigna a cada jugador una posición específica que coincida con su perfil.
 3. Equilibra los equipos por rating promedio (diferencia máxima 0.3).
 4. Considera la cobertura de posiciones — no dejes huecos.
@@ -69,8 +74,8 @@ ${lockInstructions}
 
 **Formato de salida** (solo JSON):
 {
-  "team_a": { "formation": "4-3-3", "players": [{"id": "...", "name": "...", "position": "LW"}] },
-  "team_b": { "formation": "4-4-2", "players": [{"id": "...", "name": "...", "position": "ST"}] },
+  "team_a": { "formation": "${request.formation || "4-3-3"}", "players": [{"id": "...", "name": "...", "position": "LW"}] },
+  "team_b": { "formation": "${request.formation || "4-4-2"}", "players": [{"id": "...", "name": "...", "position": "ST"}] },
   "bench": [{"id": "...", "name": "..."}],
   "balance": { "team_a_avg": 3.4, "team_b_avg": 3.5 },
   "justification": "Explicación en español del balance entre equipos..."

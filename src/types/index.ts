@@ -77,6 +77,14 @@ export const FORMAT_FILTER_MAP: Record<FormatFilter, string[]> = {
 
 export type DominantFoot = "left" | "right" | "both";
 
+/** Common formations by match format */
+export const FORMATIONS_BY_FORMAT: Record<string, string[]> = {
+  "5v5": ["2-1-1", "1-2-1", "2-2", "1-1-2", "3-1"],
+  "7v7": ["3-2-1", "2-3-1", "3-1-2", "2-2-2", "1-3-2"],
+  "8v8": ["3-3-1", "3-2-2", "2-3-2", "2-4-1", "4-2-1"],
+  "11v11": ["4-4-2", "4-3-3", "3-5-2", "4-2-3-1", "3-4-3", "5-3-2", "4-1-4-1", "4-5-1"],
+};
+
 export interface LineupPlayer {
   playerId: string;
   name: string;

@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { matchId, lockedPlayers, mode } = await request.json();
+  const { matchId, lockedPlayers, mode, formation } = await request.json();
 
   if (!matchId) {
     return NextResponse.json(
@@ -156,6 +156,7 @@ export async function POST(request: NextRequest) {
     format: match.format,
     players: playerData,
     mode: lineupMode,
+    formation: formation || undefined,
     lockedPlayers,
   });
 

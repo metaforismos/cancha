@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { PitchView } from "@/components/lineup-view";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
+import { FORMATIONS_BY_FORMAT } from "@/types";
 
 interface LineupData {
   id: string;
@@ -24,33 +25,52 @@ interface LineupData {
   published: boolean;
 }
 
+interface MatchInfo {
+  match: {
+    format: string;
+    teamAName?: string | null;
+    teamBName?: string | null;
+  };
+}
+
 export default function LineupPage() {
   const { id } = useParams<{ id: string }>();
   const [lineup, setLineup] = useState<LineupData | null>(null);
+  const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [mode, setMode] = useState<"both" | "single">("both");
+  const [formation, setFormation] = useState<string>("");
 
   useEffect(() => {
-    fetch(`/api/lineup/${id}`)
-      .then((r) => {
-        if (r.ok) return r.json();
-        return null;
-      })
-      .then((data) => {
-        if (data) setLineup(data);
+    Promise.all([
+      fetch(`/api/lineup/${id}`).then((r) => (r.ok ? r.json() : null)),
+      fetch(`/api/matches/${id}`).then((r) => (r.ok ? r.json() : null)),
+    ])
+      .then(([lineupData, matchData]) => {
+        if (lineupData) setLineup(lineupData);
+        if (matchData) setMatchInfo(matchData);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [id]);
 
+  const matchFormat = matchInfo?.match?.format || "11v11";
+  const formations = FORMATIONS_BY_FORMAT[matchFormat] || FORMATIONS_BY_FORMAT["11v11"];
+  const teamA = matchInfo?.match?.teamAName || "Equipo A";
+  const teamB = matchInfo?.match?.teamBName || "Equipo B";
+
   async function handleGenerate() {
+    if (!formation) {
+      toast.error("Selecciona una formación antes de generar");
+      return;
+    }
     setGenerating(true);
     try {
       const res = await fetch("/api/lineup/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matchId: id, mode }),
+        body: JSON.stringify({ matchId: id, mode, formation }),
       });
 
       if (!res.ok) {
@@ -78,36 +98,61 @@ export default function LineupPage() {
 
   if (!lineup) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         <PageHeader title="Alineación" />
 
         {/* Mode selector */}
-        <div className="flex gap-2">
-          <Badge
-            variant={mode === "both" ? "default" : "outline"}
-            className={`cursor-pointer ${mode === "both" ? "bg-green-600" : ""}`}
-            onClick={() => setMode("both")}
-          >
-            Dos equipos
-          </Badge>
-          <Badge
-            variant={mode === "single" ? "default" : "outline"}
-            className={`cursor-pointer ${mode === "single" ? "bg-green-600" : ""}`}
-            onClick={() => setMode("single")}
-          >
-            Un equipo
-          </Badge>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">Modo</label>
+          <div className="flex gap-2">
+            <Badge
+              variant={mode === "both" ? "default" : "outline"}
+              className={`cursor-pointer px-3 py-1.5 ${mode === "both" ? "bg-green-600" : ""}`}
+              onClick={() => setMode("both")}
+            >
+              Dos equipos
+            </Badge>
+            <Badge
+              variant={mode === "single" ? "default" : "outline"}
+              className={`cursor-pointer px-3 py-1.5 ${mode === "single" ? "bg-green-600" : ""}`}
+              onClick={() => setMode("single")}
+            >
+              Un equipo
+            </Badge>
+          </div>
+        </div>
+
+        {/* Formation selector */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">
+            Formación ({matchFormat})
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {formations.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFormation(f)}
+                className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors border ${
+                  formation === f
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-muted border-border text-foreground hover:bg-muted/80"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
 
         <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              Aún no se ha generado la alineación
+          <CardContent className="py-10 text-center space-y-4">
+            <p className="text-muted-foreground">
+              Selecciona la formación y genera la alineación con IA
             </p>
             <Button
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 h-12 px-8 text-base"
               onClick={handleGenerate}
-              disabled={generating}
+              disabled={generating || !formation}
             >
               {generating ? "Generando con IA..." : "Generar alineación"}
             </Button>
@@ -118,44 +163,28 @@ export default function LineupPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <PageHeader title="Alineación">
         <Button
           size="sm"
           variant="outline"
-          onClick={handleGenerate}
-          disabled={generating}
+          onClick={() => {
+            setLineup(null);
+            setFormation("");
+          }}
         >
-          {generating ? "..." : "Regenerar"}
+          Regenerar
         </Button>
       </PageHeader>
 
-      {/* Mode selector for regeneration */}
-      <div className="flex gap-2">
-        <Badge
-          variant={mode === "both" ? "default" : "outline"}
-          className={`cursor-pointer ${mode === "both" ? "bg-green-600" : ""}`}
-          onClick={() => setMode("both")}
-        >
-          Dos equipos
-        </Badge>
-        <Badge
-          variant={mode === "single" ? "default" : "outline"}
-          className={`cursor-pointer ${mode === "single" ? "bg-green-600" : ""}`}
-          onClick={() => setMode("single")}
-        >
-          Un equipo
-        </Badge>
-      </div>
-
       <PitchView
         team={lineup.teamA}
-        label={isSingleTeam ? "Equipo" : "Equipo A"}
+        label={isSingleTeam ? "Equipo" : teamA}
         color="#16a34a"
       />
 
       {!isSingleTeam && (
-        <PitchView team={lineup.teamB} label="Equipo B" color="#2563eb" />
+        <PitchView team={lineup.teamB} label={teamB} color="#2563eb" />
       )}
 
       {lineup.bench.length > 0 && (
