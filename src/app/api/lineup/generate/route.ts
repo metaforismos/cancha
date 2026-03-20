@@ -11,21 +11,11 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { generateLineup } from "@/lib/claude/lineup";
-import { claudeLimiter } from "@/lib/rate-limit";
 import type { PlayerForLineup } from "@/lib/claude/types";
 import type { SkillRatings } from "@/types";
 import { SKILLS } from "@/types";
 
 export async function POST(request: NextRequest) {
-  try {
-    await claudeLimiter.consume("global");
-  } catch {
-    return NextResponse.json(
-      { error: "Too many requests" },
-      { status: 429 }
-    );
-  }
-
   const session = await getSession();
 
   if (!session) {
@@ -69,19 +59,6 @@ export async function POST(request: NextRequest) {
     if (!membership) {
       return NextResponse.json({ error: "Admin only" }, { status: 403 });
     }
-  }
-
-  // Check regeneration limit
-  const existingLineups = await db
-    .select({ id: lineups.id })
-    .from(lineups)
-    .where(eq(lineups.matchId, matchId));
-
-  if (existingLineups.length >= 5) {
-    return NextResponse.json(
-      { error: "Maximum 5 regenerations reached" },
-      { status: 429 }
-    );
   }
 
   // Get enrolled players with their ratings
