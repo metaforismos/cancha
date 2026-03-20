@@ -76,7 +76,7 @@ export const clubCreateSchema = z.object({
   city: z.string().min(1).max(100),
   country: z.string().min(1).max(100),
   description: z.string().max(500).optional().or(z.literal("")),
-  logoUrl: z.string().url().optional().or(z.literal("")),
+  logoUrl: z.string().min(1).optional().or(z.literal("")),
 });
 
 export const clubUpdateSchema = clubCreateSchema.partial();
