@@ -14,12 +14,12 @@ interface PlayerData {
   name: string;
   positions: string[];
   selfSkills?: Record<string, number>;
+  combinedScore?: number | null;
+  ratingCount?: number;
 }
 
-function getOverall(skills?: Record<string, number>): number | null {
-  if (!skills || Object.keys(skills).length === 0) return null;
-  const vals = Object.values(skills);
-  return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
+function getScore(player: PlayerData): number | null {
+  return player.combinedScore ?? null;
 }
 
 export default function PlayersPage() {
@@ -33,12 +33,7 @@ export default function PlayersPage() {
     fetch(`/api/players?q=${encodeURIComponent(q)}`)
       .then((r) => r.json())
       .then((data) => {
-        const normalized = Array.isArray(data)
-          ? data.map((d: PlayerData | { player: PlayerData }) =>
-              "player" in d ? d.player : d
-            )
-          : [];
-        setPlayers(normalized);
+        setPlayers(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -60,8 +55,8 @@ export default function PlayersPage() {
       list = list.filter((p) => p.positions?.includes(posFilter));
     }
     return [...list].sort((a, b) => {
-      const scoreA = getOverall(a.selfSkills) ?? -1;
-      const scoreB = getOverall(b.selfSkills) ?? -1;
+      const scoreA = getScore(a) ?? -1;
+      const scoreB = getScore(b) ?? -1;
       return scoreB - scoreA;
     });
   }, [players, posFilter]);
@@ -138,9 +133,9 @@ export default function PlayersPage() {
                       ))}
                     </div>
                   </div>
-                  {getOverall(player.selfSkills) !== null && (
+                  {getScore(player) !== null && (
                     <span className="text-sm font-bold text-green-500">
-                      {getOverall(player.selfSkills)}
+                      {getScore(player)}
                     </span>
                   )}
                 </CardContent>

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { upsertPlayer, getPlayerByAuthId, searchPlayers } from "@/lib/db/queries";
+import {
+  upsertPlayer,
+  getPlayerByAuthId,
+  searchPlayers,
+  getPlayerAvgSkills,
+} from "@/lib/db/queries";
 import { playerProfileSchema } from "@/lib/validators";
 
 export async function GET(request: NextRequest) {
@@ -14,7 +19,48 @@ export async function GET(request: NextRequest) {
   const groupId = request.nextUrl.searchParams.get("groupId") || undefined;
 
   const results = await searchPlayers(query, groupId);
-  return NextResponse.json(results);
+
+  // Enrich each player with combined average (self + peer ratings)
+  const normalized = results.map((r: { player?: unknown }) =>
+    "player" in r ? (r as { player: Record<string, unknown> }).player : r
+  );
+
+  const enriched = await Promise.all(
+    normalized.map(async (player: Record<string, unknown>) => {
+      const peerAvg = await getPlayerAvgSkills(player.id as string);
+      const selfSkills = player.selfSkills as Record<string, number> | undefined;
+
+      // Compute self overall
+      let selfOverall: number | null = null;
+      if (selfSkills && Object.keys(selfSkills).length > 0) {
+        const vals = Object.values(selfSkills);
+        selfOverall = vals.reduce((a, b) => a + b, 0) / vals.length;
+      }
+
+      // Combined average: treat self-rating and each peer rating equally
+      let combinedScore: number | null = null;
+      if (peerAvg && selfOverall != null) {
+        // Average of self overall + peer overall (peer is already avg of N raters)
+        const totalRaters = peerAvg.ratingCount + 1; // +1 for self
+        combinedScore =
+          Math.round(
+            ((selfOverall + peerAvg.overall * peerAvg.ratingCount) / totalRaters) * 10
+          ) / 10;
+      } else if (peerAvg) {
+        combinedScore = peerAvg.overall;
+      } else if (selfOverall != null) {
+        combinedScore = Math.round(selfOverall * 10) / 10;
+      }
+
+      return {
+        ...player,
+        combinedScore,
+        ratingCount: (peerAvg?.ratingCount ?? 0) + (selfOverall != null ? 1 : 0),
+      };
+    })
+  );
+
+  return NextResponse.json(enriched);
 }
 
 export async function PUT(request: NextRequest) {
