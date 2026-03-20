@@ -42,7 +42,11 @@ export default function PlayersPage() {
     fetch("/api/groups?my=true")
       .then((r) => r.json())
       .then((data) => {
-        const myClubs = Array.isArray(data) ? data : [];
+        const raw = Array.isArray(data) ? data : [];
+        // API returns { group: { id, name, ... }, role } — unwrap
+        const myClubs: Club[] = raw.map((item: { group?: { id: string; name: string }; id?: string; name?: string }) =>
+          item.group ? { id: item.group.id, name: item.group.name } : { id: item.id!, name: item.name! }
+        );
         setClubs(myClubs);
         if (myClubs.length > 0) {
           setSelectedClubId(myClubs[0].id);
