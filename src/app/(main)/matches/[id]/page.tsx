@@ -211,7 +211,7 @@ export default function MatchDetailPage() {
                 {match.category === "training" && (
                   <Badge variant="secondary" className="text-xs flex items-center gap-1">
                     <Dumbbell className="h-3 w-3" />
-                    Entreno
+                    Entrenamiento
                   </Badge>
                 )}
               </div>

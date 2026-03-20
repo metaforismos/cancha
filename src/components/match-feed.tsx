@@ -160,7 +160,7 @@ function MatchCard({ match }: { match: MatchData }) {
               {isTraining && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 flex items-center gap-0.5">
                   <Dumbbell className="h-2.5 w-2.5" />
-                  Entreno
+                  Entrenamiento
                 </Badge>
               )}
             </div>
