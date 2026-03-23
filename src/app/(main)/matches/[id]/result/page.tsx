@@ -25,6 +25,8 @@ interface MatchInfo {
   date: string;
   endTime: string | null;
   location: string;
+  teamAName: string;
+  teamBName: string;
 }
 
 interface MatchResult {
@@ -219,7 +221,7 @@ export default function MatchResultPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-4">
                 <div className="flex-1 text-center">
-                  <p className="text-xs text-muted-foreground mb-2">Equipo A</p>
+                  <p className="text-xs text-muted-foreground mb-2">{match.teamAName}</p>
                   <div className="flex items-center justify-center gap-2">
                     <Button
                       variant="outline"
@@ -248,7 +250,7 @@ export default function MatchResultPage() {
                 </span>
 
                 <div className="flex-1 text-center">
-                  <p className="text-xs text-muted-foreground mb-2">Equipo B</p>
+                  <p className="text-xs text-muted-foreground mb-2">{match.teamBName}</p>
                   <div className="flex items-center justify-center gap-2">
                     <Button
                       variant="outline"
@@ -284,12 +286,12 @@ export default function MatchResultPage() {
           ) : result ? (
             <div className="flex items-center justify-center gap-6">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground mb-1">Equipo A</p>
+                <p className="text-xs text-muted-foreground mb-1">{match.teamAName}</p>
                 <span className="text-4xl font-bold">{result.scoreA}</span>
               </div>
               <span className="text-2xl text-muted-foreground">–</span>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground mb-1">Equipo B</p>
+                <p className="text-xs text-muted-foreground mb-1">{match.teamBName}</p>
                 <span className="text-4xl font-bold">{result.scoreB}</span>
               </div>
             </div>

@@ -46,6 +46,8 @@ export async function GET(
       date: match.date,
       endTime: match.endTime,
       location: match.location,
+      teamAName: match.teamAName || "Equipo A",
+      teamBName: match.teamBName || "Equipo B",
     },
     result,
     events,
