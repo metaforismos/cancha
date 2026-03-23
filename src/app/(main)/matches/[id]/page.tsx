@@ -25,7 +25,17 @@ import {
   Clock,
   Users,
   Pencil,
+  UserPlus,
+  Search,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { buildMatchShareMessage, whatsappUrl } from "@/lib/share";
 import { MatchStatusBadge } from "@/components/match-status-badge";
 
@@ -58,6 +68,7 @@ interface MatchDetail {
   }[];
   currentUserId: string;
   canEdit: boolean;
+  isMember: boolean;
   ratingCount?: number;
   canRecordStats?: boolean;
 }
@@ -67,6 +78,10 @@ export default function MatchDetailPage() {
   const [data, setData] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
+  const [addPlayerOpen, setAddPlayerOpen] = useState(false);
+  const [clubMembers, setClubMembers] = useState<{ player: { id: string; name: string; positions: string[] }; role: string }[]>([]);
+  const [memberSearch, setMemberSearch] = useState("");
+  const [addingPlayerId, setAddingPlayerId] = useState<string | null>(null);
 
   function load() {
     fetch(`/api/matches/${id}`)
@@ -86,7 +101,7 @@ export default function MatchDetailPage() {
     return <DetailSkeleton />;
   }
 
-  const { match, enrollments, currentUserId, canEdit } = data;
+  const { match, enrollments, currentUserId, canEdit, isMember } = data;
   const enrolled = enrollments.filter((e) => e.enrollment.status === "enrolled");
   const waitlisted = enrollments.filter(
     (e) => e.enrollment.status === "waitlisted"
@@ -128,6 +143,41 @@ export default function MatchDetailPage() {
     });
     setEnrolling(false);
     toast.success("Saliste del partido");
+    load();
+  }
+
+  const canAddPlayers = isMember && match.status !== "completed";
+
+  async function handleOpenAddPlayer() {
+    setAddPlayerOpen(true);
+    setMemberSearch("");
+    // Fetch club members
+    const res = await fetch(`/api/groups/${match.groupId}`);
+    if (res.ok) {
+      const club = await res.json();
+      setClubMembers(club.members || []);
+    }
+  }
+
+  async function handleAddPlayer(playerId: string) {
+    setAddingPlayerId(playerId);
+    const res = await fetch("/api/enrollments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matchId: id, playerId }),
+    });
+    const result = await res.json();
+    setAddingPlayerId(null);
+
+    if (!res.ok) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success(
+      result.status === "waitlisted"
+        ? "Agregado a la lista de espera"
+        : "¡Jugador agregado al partido!"
+    );
     load();
   }
 
@@ -335,10 +385,107 @@ export default function MatchDetailPage() {
       {/* Enrolled players */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">
-            Inscritos ({enrolled.length}
-            {match.maxPlayers && match.maxPlayers < 999 ? `/${match.maxPlayers}` : ""})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">
+              Inscritos ({enrolled.length}
+              {match.maxPlayers && match.maxPlayers < 999 ? `/${match.maxPlayers}` : ""})
+            </CardTitle>
+            {canAddPlayers && (
+              <Dialog open={addPlayerOpen} onOpenChange={setAddPlayerOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2"
+                    onClick={handleOpenAddPlayer}
+                  >
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Agregar
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle>Agregar jugador</DialogTitle>
+                  </DialogHeader>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar miembro..."
+                      value={memberSearch}
+                      onChange={(e) => setMemberSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <div className="overflow-y-auto max-h-[50vh] divide-y divide-border">
+                    {clubMembers
+                      .filter((m) => {
+                        // Exclude already enrolled/waitlisted players
+                        const alreadyIn = enrollments.some(
+                          (e) =>
+                            e.enrollment.playerId === m.player.id &&
+                            e.enrollment.status !== "removed"
+                        );
+                        if (alreadyIn) return false;
+                        // Filter by search
+                        if (!memberSearch) return true;
+                        return m.player.name
+                          .toLowerCase()
+                          .includes(memberSearch.toLowerCase());
+                      })
+                      .map((m) => (
+                        <button
+                          key={m.player.id}
+                          className="flex items-center gap-3 py-3 px-1 w-full text-left hover:bg-muted/50 rounded-md transition-colors"
+                          onClick={() => handleAddPlayer(m.player.id)}
+                          disabled={addingPlayerId === m.player.id}
+                        >
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback className="bg-green-600 text-white text-xs">
+                              {m.player.name.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium block truncate">
+                              {m.player.name}
+                            </span>
+                            <div className="flex gap-1 mt-0.5">
+                              {(m.player.positions as string[])?.slice(0, 2).map((p) => (
+                                <Badge key={p} variant="secondary" className="text-[10px] px-1.5">
+                                  {p}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          {addingPlayerId === m.player.id ? (
+                            <span className="text-xs text-muted-foreground">Agregando...</span>
+                          ) : (
+                            <UserPlus className="h-4 w-4 text-muted-foreground shrink-0" />
+                          )}
+                        </button>
+                      ))}
+                    {clubMembers.filter((m) => {
+                      const alreadyIn = enrollments.some(
+                        (e) =>
+                          e.enrollment.playerId === m.player.id &&
+                          e.enrollment.status !== "removed"
+                      );
+                      if (alreadyIn) return false;
+                      if (!memberSearch) return true;
+                      return m.player.name
+                        .toLowerCase()
+                        .includes(memberSearch.toLowerCase());
+                    }).length === 0 && (
+                      <p className="text-sm text-muted-foreground py-4 text-center">
+                        {clubMembers.length === 0
+                          ? "Cargando miembros..."
+                          : "No hay miembros disponibles"}
+                      </p>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {enrolled.length === 0 ? (

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getMatchWithEnrollments, isGroupAdmin, getPlayerAvgSkills, autoUpdateMatchStatus } from "@/lib/db/queries";
+import { getMatchWithEnrollments, isGroupAdmin, getPlayerAvgSkills, autoUpdateMatchStatus, isPlayerInClub } from "@/lib/db/queries";
 import { db } from "@/lib/db";
 import { matches } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -43,10 +43,13 @@ export async function GET(
       endTime &&
       now.getTime() - endTime.getTime() < 24 * 60 * 60 * 1000);
 
+  const isMember = await isPlayerInClub(result.match.groupId, session.player.id);
+
   return NextResponse.json({
     ...result,
     currentUserId: session.player.id,
     canEdit,
+    isMember,
     ratingCount,
     canRecordStats: !!canRecordStats,
   });
