@@ -392,16 +392,18 @@ export default function MatchDetailPage() {
             </CardTitle>
             {canAddPlayers && (
               <Dialog open={addPlayerOpen} onOpenChange={setAddPlayerOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2"
-                    onClick={handleOpenAddPlayer}
-                  >
-                    <UserPlus className="h-4 w-4 mr-1" />
-                    Agregar
-                  </Button>
+                <DialogTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2"
+                      onClick={handleOpenAddPlayer}
+                    />
+                  }
+                >
+                  <UserPlus className="h-4 w-4 mr-1" />
+                  Agregar
                 </DialogTrigger>
                 <DialogContent className="max-w-sm max-h-[80vh]">
                   <DialogHeader>
