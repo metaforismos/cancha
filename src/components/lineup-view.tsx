@@ -129,10 +129,10 @@ export function PitchView({
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md"
                 style={{ backgroundColor: color }}
               >
-                {player.name.slice(0, 2).toUpperCase()}
+                {player.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
               </div>
-              <span className="text-[10px] text-white/80 mt-0.5 text-center leading-tight max-w-16 truncate">
-                {player.name.split(" ")[0]}
+              <span className="text-[10px] text-white/80 mt-0.5 text-center leading-tight max-w-20 truncate">
+                {player.name}
               </span>
               <span className="text-[9px] text-white/50">
                 {player.position}
